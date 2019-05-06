@@ -16,23 +16,23 @@ include "processors/processDraftTimings.php";
 // TODO smokes
 // TODO epilogue
 
-function createParsedDataBlob($entries, $epilogue, $doLogParse = true) {
+function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   $time = [];
 
   $stream = \fopen("php://stderr", "w") or die("Unable to open stderr stream");
   
   $matchid = $epilogue['gameInfo_']['dota_']['matchId_'];
 
-  $time['metadata'] = [ 'start' => microtime(true) ];
-  $meta = processMetadata(entries);
+  $time['metadata'] = [ 'start' => \microtime(true) ];
+  $meta = processMetadata($entries);
   $meta['match_id'] = $matchid;
-  $time['metadata']['end'] = microtime(true);
+  $time['metadata']['end'] = \microtime(true);
+
+  $time['expand'] = [ 'start' => \microtime(true) ];
+  $expanded = processExpand($entries, $meta);
+  $time['expand']['end'] = \microtime(true);
 
   /*
-
-  logConsole.time('expand');
-  const expanded = processExpand(entries, meta);
-  logConsole.timeEnd('expand');
 
   logConsole.time('populate');
   const parsedData = processParsedData(expanded, getParseSchema(), meta);
@@ -65,22 +65,23 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse = true) {
   \fclose($stream);
 }
 
+function parseStream($stream, $doLogParse = true) {
+  $entries = [];
 
-$entries = [];
+  $stream = \fopen($stream, "r") or die("Unable to open stream");
+  while(!\feof($stream)) {
+    $e = \json_decode(\trim(\fgets($stream)), true);
+    if ($e['type'] === 'epilogue') {
+      $epilogue = \json_decode($e['key'], true);
+      break;
+    } else 
+      $entries[] = $e;
+  }
+  \fclose($stream);
+  
+  $parsedData = createParsedDataBlob($entries, $epilogue, $doLogParse);
 
-$stream = \fopen("php://stdin", "r") or die("Unable to open stream");
-while(!\feof($stream)) {
-  $e = \json_decode(\trim(\fgets($stream)), true);
-  if ($e['type'] === 'epilogue') {
-    $epilogue = \json_decode($e['key'], true);
-    break;
-  } else 
-    $entries[] = $e;
+  return $parsedData;
 }
-\fclose($stream);
-
-$parsedData = createParsedDataBlob($entries, $epilogue);
-$strParsedData = \json_encode($parsedData);
-echo $strParsedData;
 
 ?>

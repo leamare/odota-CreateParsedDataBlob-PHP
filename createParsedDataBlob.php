@@ -17,14 +17,16 @@ include "processors/processDraftTimings.php";
 // TODO epilogue
 
 function createParsedDataBlob($entries, $epilogue, $doLogParse = true) {
+  $time = [];
+
   $stream = \fopen("php://stderr", "w") or die("Unable to open stderr stream");
   
   $matchid = $epilogue['gameInfo_']['dota_']['matchId_'];
 
-  //logConsole.time('metadata');
+  $time['metadata'] = [ 'start' => microtime(true) ];
   $meta = processMetadata(entries);
   $meta['match_id'] = $matchid;
-  //logConsole.timeEnd('metadata');
+  $time['metadata']['end'] = microtime(true);
 
   /*
 

@@ -2,7 +2,7 @@
 
 namespace \CreateParsedDataBlob;
 
-include __DIR__ . "../util/utility.php";
+include_once __DIR__ . "../util/utility.php";
 
 /**
  * Compute data requiring all players in a match for storage in match table

@@ -43,15 +43,15 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   $time['draft'] = [ 'start' => \microtime(true) ];
   $parsedData['draft_timings'] = processDraftTimings($entries, $meta);
   $time['draft']['end'] = \microtime(true);
-  
+
+  $time['processAllPlayers'] = [ 'start' => \microtime(true) ];
+  $ap = processAllPlayers($entries, $meta);
+  $time['processAllPlayers']['end'] = \microtime(true);
+
+  $parsedData['radiant_gold_adv'] = $ap['radiant_gold_adv'];
+  $parsedData['radiant_xp_adv'] = $ap['radiant_xp_adv'];
+
   /*
-
-  logConsole.time('processAllPlayers');
-  const ap = processAllPlayers(entries, meta);
-  logConsole.timeEnd('processAllPlayers');
-
-  parsedData.radiant_gold_adv = ap.radiant_gold_adv;
-  parsedData.radiant_xp_adv = ap.radiant_xp_adv;
 
   logConsole.time('doLogParse');
   if (doLogParse) {

@@ -5,7 +5,7 @@ namespace \CreateParsedDataBlob;
 include_once __DIR__ . "performanceOthers.php";
 include_once __DIR__ . "../util/php_utility.php";
 
-function populate($e, $container, $meta) {
+function populate(&$e, &$container, &$meta) {
   switch ($e['type']) {
     case 'interval':
       break;

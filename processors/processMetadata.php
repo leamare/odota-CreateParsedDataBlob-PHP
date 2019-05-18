@@ -7,7 +7,7 @@ include __DIR__ . "../from_camel_case.php";
 /**
  * Given an event stream, extracts metadata such as game zero time and hero to slot/ID mappings.
  * */
-function processMetadata($entries) {
+function processMetadata(&$entries) {
   $heroToSlot = [];
   $slotToPlayerslot = [];
   $heroIdToSlot = [];
@@ -36,11 +36,9 @@ function processMetadata($entries) {
     },
   ];
 
-  for ($i = 0; $i < sizeof($entries); $i++) {
-    $e = $entries[$i];
-    if ($metaTypes[$e['type']]) {
-      $metaTypes[$e['type']]($e);
-    }
+  foreach ($entries as $e) {
+    if ($metaTypes[ $e['type'] ])
+      $metaTypes[ $e['type'] ]($e);
   }
 
   return [

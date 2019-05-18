@@ -26,7 +26,7 @@ function computeIllusionString($input, $isIllusion) {
 /**
  * Produces a new output array with expanded entries from the original input array
  * */
-function processExpand($entries, $meta) {
+function processExpand(&$entries, &$meta) {
   $output = [];
   /**
    * Place a copy of the entry in the output
@@ -621,7 +621,7 @@ function processExpand($entries, $meta) {
     },
   ];
 
-  foreach($entries as $e) {
+  foreach($entries as &$e) {
     if ($types[ $e['type'] ]) {
       $types[ $e['type'] ]($e);
     } else {

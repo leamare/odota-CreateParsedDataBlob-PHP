@@ -37,13 +37,14 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   $time['populate']['end'] = \microtime(true);
 
   $time['teamfights'] = [ 'start' => \microtime(true) ];
-  $parsedData = processTeamfights($expanded, $meta);
+  $parsedData['teamfights'] = processTeamfights($expanded, $meta);
   $time['teamfights']['end'] = \microtime(true);
-  /*
 
-  logConsole.time('draft');
-  parsedData.draft_timings = processDraftTimings(entries, meta);
-  logConsole.timeEnd('draft');
+  $time['draft'] = [ 'start' => \microtime(true) ];
+  $parsedData['draft_timings'] = processDraftTimings($entries, $meta);
+  $time['draft']['end'] = \microtime(true);
+  
+  /*
 
   logConsole.time('processAllPlayers');
   const ap = processAllPlayers(entries, meta);

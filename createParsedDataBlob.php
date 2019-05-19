@@ -51,18 +51,14 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   $parsedData['radiant_gold_adv'] = $ap['radiant_gold_adv'];
   $parsedData['radiant_xp_adv'] = $ap['radiant_xp_adv'];
 
-  /*
-
-  logConsole.time('doLogParse');
-  if (doLogParse) {
-    parsedData.logs = processLogParse(entries, meta);
-  }
-  logConsole.timeEnd('doLogParse');
-
-  return parsedData;
-  */
+  $time['doLogParse'] = [ 'start' => \microtime(true) ];
+  if ($doLogParse)
+    $parsedData['logs'] = processReduce($entries, $meta);
+  $time['doLogParse']['end'] = \microtime(true);
 
   \fclose($stream);
+
+  return $parsedData;
 }
 
 function parseStream($stream, $doLogParse = true) {

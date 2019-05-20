@@ -1,6 +1,6 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
 function getParseSchema() {
   $schema = [
@@ -75,6 +75,8 @@ function getParseSchema() {
   ];
   
   return $schema;
+}
+
 }
 
 ?>

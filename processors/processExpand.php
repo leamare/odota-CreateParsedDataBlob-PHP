@@ -1,6 +1,6 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
 /**
  * Strips off "item_" from strings, and nullifies dota_unknown.
@@ -10,7 +10,7 @@ function translate($input) {
   if ($input === 'dota_unknown') {
     return null;
   }
-  if ($input && \strpos($index, 'item_') === 0) {
+  if (!empty($input) && \strpos($input, 'item_') === 0) {
     return \substr($input, 5);
   }
   return $input;
@@ -20,7 +20,7 @@ function translate($input) {
  * Prepends illusion_ to string if illusion
  * */
 function computeIllusionString($input, $isIllusion) {
-  return ($isIllusion ? 'illusion_' : '') + $input;
+  return ($isIllusion ? 'illusion_' : '').$input;
 }
 
 /**
@@ -31,12 +31,13 @@ function processExpand(&$entries, &$meta) {
   /**
    * Place a copy of the entry in the output
    * */
-  $expand = function($e) use (&$output) {
+  $expand = function($e) use (&$output, &$meta) {
     // set slot and player_slot
-    $slot = isset($e['slot']) ? $e['slot'] : $meta['hero_to_slot'][ $e['unit'] ];
-    $e_out['slot'] = $slot;
-    $e_out['player_slot'] = $meta['slot_to_playerslot'][$slot];
-    $output[] = $e_out;
+    $slot = $e['slot'] ?? (isset($e['unit']) && isset($meta['hero_to_slot'][ $e['unit'] ]) ? $meta['hero_to_slot'][ $e['unit'] ] : null);
+    $output[] = array_replace($e, [
+      'slot' => $slot,
+      'player_slot' => $meta['slot_to_playerslot'][$slot] ?? $slot,
+    ]);
   };
 
   // Tracks current aegis holder so we can ignore kills that pop aegis
@@ -46,7 +47,7 @@ function processExpand(&$entries, &$meta) {
   $aegisDeathTime = null;
 
   $types = [
-    'DOTA_COMBATLOG_DAMAGE' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_DAMAGE' => function($e) use ($expand, &$meta) {
       // damage
       $unit = $e['sourcename'];
       $key = computeIllusionString($e['targetname'], $e['targetillusion']);
@@ -112,7 +113,7 @@ function processExpand(&$entries, &$meta) {
         }
       }
     },
-    'DOTA_COMBATLOG_HEAL' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_HEAL' => function($e) use ($expand, &$meta) {
       // healing
       $expand(\array_replace($e, [
         'unit' => $e['sourcename'],
@@ -120,7 +121,7 @@ function processExpand(&$entries, &$meta) {
         'type' => 'healing',
       ]));
     },
-    'DOTA_COMBATLOG_MODIFIER_ADD' => function($e) use ($expand, &$aegisHolder) {
+    'DOTA_COMBATLOG_MODIFIER_ADD' => function($e) use ($expand, &$aegisHolder, &$meta) {
       // gain buff/debuff
       // e.attackername // unit that buffed (use source to get the hero? chen/enchantress)
       // e.inflictor // the buff
@@ -131,14 +132,14 @@ function processExpand(&$entries, &$meta) {
         $aegisHolder = null;
       }
     },
-    'DOTA_COMBATLOG_MODIFIER_REMOVE' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_MODIFIER_REMOVE' => function($e = null) use ($expand, &$meta) {
       // modifier_lost
       // lose buff/debuff
       // this is really only useful if we want to try to "time" modifiers
       // e.targetname is unit losing buff (possibly illusion)
       // e.inflictor is name of buff
     },
-    'DOTA_COMBATLOG_DEATH' => function($e) use ($expand, &$aegisHolder, &$aegisDeathTime) {
+    'DOTA_COMBATLOG_DEATH' => function($e) use ($expand, &$aegisHolder, &$aegisDeathTime, &$meta) {
       $unit = $e['sourcename'];
       $key = computeIllusionString($e['targetname'], $e['targetillusion']);
 
@@ -155,7 +156,7 @@ function processExpand(&$entries, &$meta) {
         ]);
       }
 
-      if ($meta['hero_to_slot'][$key] === aegisHolder) {
+      if (isset($meta['hero_to_slot'][$key]) && $meta['hero_to_slot'][$key] === $aegisHolder) {
         // The aegis holder was killed
         if ($aegisDeathTime === null) {
           // It is the first time they have been killed this tick
@@ -183,8 +184,8 @@ function processExpand(&$entries, &$meta) {
           'time' => $e['time'],
           'unit' => $unit,
           'key'  => $key,
-          'tracked_death' => $e['tracked_death'],
-          'tracked_sourcename' => $e['tracked_sourcename'],
+          'tracked_death' => $e['tracked_death'] ?? null,
+          'tracked_sourcename' => $e['tracked_sourcename'] ?? null,
           'type' => 'kills_log',
         ]);
         // reverse
@@ -204,7 +205,7 @@ function processExpand(&$entries, &$meta) {
         'value'=> 1,
       ]));
     },
-    'DOTA_COMBATLOG_ABILITY' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_ABILITY' => function($e) use ($expand, &$meta) {
       // Value field is 1 or 2 for toggles
       // ability use
       $expand([
@@ -223,7 +224,7 @@ function processExpand(&$entries, &$meta) {
         ]);
       }
     },
-    'DOTA_COMBATLOG_ITEM' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_ITEM' => function($e) use ($expand, &$meta) {
       // item use
       $expand([
         'time' => $e['time'],
@@ -232,10 +233,10 @@ function processExpand(&$entries, &$meta) {
         'type' => 'item_uses',
       ]);
     },
-    'DOTA_COMBATLOG_LOCATION' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_LOCATION' => function($e = null) use ($expand, &$meta) {
       // not in replay?
     },
-    'DOTA_COMBATLOG_GOLD' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_GOLD' => function($e) use ($expand, &$meta) {
       // gold gain/loss
       $expand([
         'time' => $e['time'],
@@ -245,10 +246,10 @@ function processExpand(&$entries, &$meta) {
         'type' => 'gold_reasons',
       ]);
     },
-    'DOTA_COMBATLOG_GAME_STATE' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_GAME_STATE' => function($e = null) use ($expand, &$meta) {
       // state
     },
-    'DOTA_COMBATLOG_XP' => function ($e) use ($expand) {
+    'DOTA_COMBATLOG_XP' => function ($e) use ($expand, &$meta) {
       // xp gain
       $expand([
         'time' => $e['time'],
@@ -258,7 +259,7 @@ function processExpand(&$entries, &$meta) {
         'type' => 'xp_reasons',
       ]);
     },
-    'DOTA_COMBATLOG_PURCHASE' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_PURCHASE' => function($e) use ($expand, &$meta) {
       // purchase
       $unit = $e['targetname'];
       $key = translate($e['valuename']);
@@ -280,7 +281,7 @@ function processExpand(&$entries, &$meta) {
         ]);
       }
     },
-    'DOTA_COMBATLOG_BUYBACK' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_BUYBACK' => function($e) use ($expand, &$meta) {
       // buyback
       $expand([
         'time' => $e['time'],
@@ -288,14 +289,14 @@ function processExpand(&$entries, &$meta) {
         'type' => 'buyback_log',
       ]);
     },
-    'DOTA_COMBATLOG_ABILITY_TRIGGER' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_ABILITY_TRIGGER' => function($e = null) use ($expand, &$meta) {
       // ability_trigger
       // only seems to happen for axe spins
       // e.attackername //unit triggered on?
       // e.inflictor; //ability triggered?
       // e.targetname //unit that triggered the skill
     },
-    'DOTA_COMBATLOG_PLAYERSTATS' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_PLAYERSTATS' => function($e = null) use ($expand, &$meta) {
       // player_stats
       // Don't really know what this does, following fields seem to be populated
       // attackername
@@ -303,7 +304,7 @@ function processExpand(&$entries, &$meta) {
       // targetsourcename
       // value (1-15)
     },
-    'DOTA_COMBATLOG_MULTIKILL' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_MULTIKILL' => function($e) use ($expand, &$meta) {
       // multikill
       // add the "minimum value", as of 2016-02-06
       // remove the "minimum value", as of 2016-06-23
@@ -315,7 +316,7 @@ function processExpand(&$entries, &$meta) {
         'type' => 'multi_kills',
       ]);
     },
-    'DOTA_COMBATLOG_KILLSTREAK' => function($e) use ($expand) {
+    'DOTA_COMBATLOG_KILLSTREAK' => function($e) use ($expand, &$meta) {
       // killstreak
       // add the "minimum value", as of 2016-02-06
       // remove the "minimum value", as of 2016-06-23
@@ -327,7 +328,7 @@ function processExpand(&$entries, &$meta) {
         'type' => 'kill_streaks',
       ]);
     },
-    'DOTA_COMBATLOG_TEAM_BUILDING_KILL' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_TEAM_BUILDING_KILL' => function($e = null) use ($expand, &$meta) {
       // team_building_kill
       // System.err.println(cle);
       // e.attackername,  unit that killed the building
@@ -337,15 +338,15 @@ function processExpand(&$entries, &$meta) {
       // 2 is rax?
       // 3 is ancient?
     },
-    'DOTA_COMBATLOG_FIRST_BLOOD' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_FIRST_BLOOD' => function($e = null) use ($expand, &$meta) {
       // first_blood
       // time, involved players?
     },
-    'DOTA_COMBATLOG_MODIFIER_REFRESH' => function($e = null) use ($expand) {
+    'DOTA_COMBATLOG_MODIFIER_REFRESH' => function($e = null) use ($expand, &$meta) {
       // modifier_refresh
       // no idea what this means
     },
-    'pings' => function($e) use ($expand) {
+    'pings' => function($e) use ($expand, &$meta) {
       // we're not breaking pings into subtypes atm so just set key to 0 for now
       $expand([
         'time' => $e['time'],
@@ -354,13 +355,13 @@ function processExpand(&$entries, &$meta) {
         'key' => 0,
       ]);
     },
-    'actions' => function($e) use ($expand) {
+    'actions' => function($e) use ($expand, &$meta) {
       // expand the actions
       $expand(\array_replace($e, [
         'value' => 1
       ]));
     },
-    'CHAT_MESSAGE_RUNE_PICKUP' => function($e) use ($expand) {
+    'CHAT_MESSAGE_RUNE_PICKUP' => function($e) use ($expand, &$meta) {
       $expand([
         'time' => $e['time'],
         'value' => 1,
@@ -375,10 +376,10 @@ function processExpand(&$entries, &$meta) {
         'type' => 'runes_log',
       ]);
     },
-    'CHAT_MESSAGE_RUNE_BOTTLE' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_RUNE_BOTTLE' => function($e = null) use ($expand, &$meta) {
       // not tracking rune bottling atm
     },
-    'CHAT_MESSAGE_HERO_KILL' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_HERO_KILL' => function($e = null) use ($expand, &$meta) {
       // player, assisting players
       // player2 killed player 1
       // subsequent players assisted
@@ -388,23 +389,23 @@ function processExpand(&$entries, &$meta) {
       // e.key = String(e.player1);
       // currently disabled in favor of combat log kills
     },
-    'CHAT_MESSAGE_GLYPH_USED' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_GLYPH_USED' => function($e = null) use ($expand, &$meta) {
       // team glyph
       // player1 = team that used glyph (2/3, or 0/1?)
       // e.team = e.player1;
     },
-    'CHAT_MESSAGE_PAUSED' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_PAUSED' => function($e = null) use ($expand, &$meta) {
       // e.slot = e.player1;
       // player1 paused
     },
-    'CHAT_MESSAGE_TOWER_KILL' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_TOWER_KILL' => function($e = null) use ($expand, &$meta) {
     },
-    'CHAT_MESSAGE_TOWER_DENY' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_TOWER_DENY' => function($e = null) use ($expand, &$meta) {
       // tower (player/team)
       // player1 = slot of player who killed tower (-1 if nonplayer)
       // value (2/3 radiant/dire killed tower, recently 0/1?)
     },
-    'CHAT_MESSAGE_BARRACKS_KILL' => function($e = null) use ($expand) {
+    'CHAT_MESSAGE_BARRACKS_KILL' => function($e = null) use ($expand, &$meta) {
       // barracks (player)
       // value id of barracks based on power of 2?
       // Barracks can always be deduced
@@ -412,7 +413,7 @@ function processExpand(&$entries, &$meta) {
       // starting by the Dire side to the Dire Side, Bottom to Top, Melee to Ranged
       // so Bottom Melee Dire Rax = 1 and Top Ranged Radiant Rax = 2048.
     },
-    'CHAT_MESSAGE_RECONNECT' => function($e) use ($expand) {
+    'CHAT_MESSAGE_RECONNECT' => function($e) use ($expand, &$meta) {
       $expand([
         'time' => $e['time'],
         'type' => 'connection_log',
@@ -420,7 +421,7 @@ function processExpand(&$entries, &$meta) {
         'event' => 'reconnect',
       ]);
     },
-    'CHAT_MESSAGE_DISCONNECT_WAIT_FOR_RECONNECT' => function($e) use ($expand) {
+    'CHAT_MESSAGE_DISCONNECT_WAIT_FOR_RECONNECT' => function($e) use ($expand, &$meta) {
       $expand([
         'time' => $e['time'],
         'type' => 'connection_log',
@@ -428,7 +429,7 @@ function processExpand(&$entries, &$meta) {
         'event' => 'disconnect',
       ]);
     },
-    'CHAT_MESSAGE_FIRSTBLOOD' => function($e) use ($expand) {
+    'CHAT_MESSAGE_FIRSTBLOOD' => function($e) use ($expand, &$meta) {
       $expand([
         'time' => $e['time'],
         'type' => $e['type'],
@@ -436,7 +437,7 @@ function processExpand(&$entries, &$meta) {
         'key' => $e['player2'],
       ]);
     },
-    'CHAT_MESSAGE_AEGIS' => function($e) use ($expand, &$aegisHolder) {
+    'CHAT_MESSAGE_AEGIS' => function($e) use ($expand, &$aegisHolder, &$meta) {
       $aegisHolder = $e['player1'];
 
       $expand([
@@ -445,7 +446,7 @@ function processExpand(&$entries, &$meta) {
         'slot' => $e['player1'],
       ]);
     },
-    'CHAT_MESSAGE_AEGIS_STOLEN' => function($e) use ($expand, &$aegisHolder) {
+    'CHAT_MESSAGE_AEGIS_STOLEN' => function($e) use ($expand, &$aegisHolder, &$meta) {
       $aegisHolder = $e['player1'];
 
       $expand([
@@ -454,7 +455,7 @@ function processExpand(&$entries, &$meta) {
         'slot' => $e['player1'],
       ]);
     },
-    'CHAT_MESSAGE_DENIED_AEGIS' => function($e) use ($expand) {
+    'CHAT_MESSAGE_DENIED_AEGIS' => function($e) use ($expand, &$meta) {
       // aegis (player)
       // player1 = slot who picked up/denied/stole aegis
       $expand([
@@ -463,7 +464,7 @@ function processExpand(&$entries, &$meta) {
         'slot' => $e['player1'],
       ]);
     },
-    'CHAT_MESSAGE_ROSHAN_KILL' => function($e) use ($expand) {
+    'CHAT_MESSAGE_ROSHAN_KILL' => function($e) use ($expand, &$meta) {
       // player1 = team that killed roshan? (2/3)
       $expand([
         'time' => $e['time'],
@@ -471,7 +472,7 @@ function processExpand(&$entries, &$meta) {
         'team' => $e['player1'],
       ]);
     },
-    'CHAT_MESSAGE_COURIER_LOST' => function($e) use ($expand) {
+    'CHAT_MESSAGE_COURIER_LOST' => function($e) use ($expand, &$meta) {
       // player1 = team that lost courier? (2/3)
       $expand([
         'time' => $e['time'],
@@ -518,11 +519,11 @@ function processExpand(&$entries, &$meta) {
           $key;
           $value;
           if ($field === 'life_state') {
-            $key = $e[$field];
+            $key = $e[$field] ?? null;
             $value = 1;
           } else {
             $key = $field;
-            $value = $e[$field];
+            $value = $e[$field] ?? null;
           }
           $expand([
             'time' => $e['time'],
@@ -572,7 +573,7 @@ function processExpand(&$entries, &$meta) {
         }
       }
       // store player position for the first 10 minutes
-      if ($e['time'] <= 600 && $e['x'] && $e['y']) {
+      if ($e['time'] <= 600 && isset($e['x']) && isset($e['y'])) {
         $expand([
           'time' => $e['time'],
           'slot' => $e['slot'],
@@ -614,7 +615,9 @@ function processExpand(&$entries, &$meta) {
       $expand($e);
     },
     'player_slot' => function($e) use ($expand) {
-      $expand($e);
+      $expand(array_replace($e, [
+        'slot' => $e['key'],
+      ]));
     },
     'cosmetics' => function($e) use ($expand) {
       $expand($e);
@@ -622,7 +625,7 @@ function processExpand(&$entries, &$meta) {
   ];
 
   foreach($entries as &$e) {
-    if ($types[ $e['type'] ]) {
+    if (isset($types[ $e['type'] ])) {
       $types[ $e['type'] ]($e);
     } else {
       // console.log('parser emitted unhandled type: %s', e.type);
@@ -632,4 +635,5 @@ function processExpand(&$entries, &$meta) {
   return $output;
 }
 
+}
 ?>

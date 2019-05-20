@@ -1,6 +1,6 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
 /**
  * This processor grabs the draft timings from the parsed replay.
@@ -23,8 +23,8 @@ function processDraftTimings(&$entries, &$meta) {
   $sumActiveTeam = 0;
   $previousActiveTeam = 0;
   foreach ($entries as $i => &$e) {
-    $heroId = e.hero_id;
-    if ($e['type'] === 'draft_timings') {
+    $heroId = $e['hero_id'] ?? null;
+    if (isset($e['type']) && $e['type'] === 'draft_timings') {
       // The active team needs to be downshifted by 1, so ignore the final observation.
       if ($i < (sizeof($entries) - 1)) {
         $sumActiveTeam += $e['draft_active_team'];
@@ -70,4 +70,5 @@ function processDraftTimings(&$entries, &$meta) {
   return $draftTimings;
 }
 
+}
 ?>

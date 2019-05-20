@@ -1,8 +1,8 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
-include_once __DIR__ . "../util/utility.php";
+include_once __DIR__ . "/../util/utility.php";
 
 /**
  * Compute data requiring all players in a match for storage in match table
@@ -23,8 +23,8 @@ function processAllPlayers($entries, $meta) {
       $x = \odota\core\utils\isRadiant([
         'player_slot' => $meta['slot_to_playerslot'][$e['slot']],
       ]) ? $e['xp'] : -$e['xp'];
-      $goldAdvTime[$e['time']] = $goldAdvTime[$e['time']] ? $goldAdvTime[$e['time']] + $g : $g;
-      $xpAdvTime[$e['time']] = $xpAdvTime[$e['time']] ? $xpAdvTime[$e['time']] + $x : $x;
+      $goldAdvTime[$e['time']] = isset($goldAdvTime[$e['time']]) ? $goldAdvTime[$e['time']] + $g : $g;
+      $xpAdvTime[$e['time']] = isset($xpAdvTime[$e['time']]) ? $xpAdvTime[$e['time']] + $x : $x;
     }
   }
 
@@ -40,4 +40,5 @@ function processAllPlayers($entries, $meta) {
   return $res;
 }
 
+}
 ?>

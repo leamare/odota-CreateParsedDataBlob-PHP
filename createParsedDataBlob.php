@@ -1,6 +1,6 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
 include "__includes/__matchdataDummy.php";
 
@@ -33,7 +33,8 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   $time['expand']['end'] = \microtime(true);
 
   $time['populate'] = [ 'start' => \microtime(true) ];
-  $parsedData = processParsedData($expanded, getParseSchema(), $meta);
+  $container = getParseSchema();
+  $parsedData = processParsedData($expanded, $container, $meta);
   $time['populate']['end'] = \microtime(true);
 
   $time['teamfights'] = [ 'start' => \microtime(true) ];
@@ -53,7 +54,7 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
 
   $time['doLogParse'] = [ 'start' => \microtime(true) ];
   if ($doLogParse)
-    $parsedData['logs'] = processReduce($entries, $meta);
+    $parsedData['logs'] = LogParse\processReduce($entries, $meta);
   $time['doLogParse']['end'] = \microtime(true);
 
   \fclose($stream);
@@ -78,6 +79,8 @@ function parseStream($stream, $doLogParse = true) {
   $parsedData = createParsedDataBlob($entries, $epilogue, $doLogParse);
 
   return $parsedData;
+}
+
 }
 
 ?>

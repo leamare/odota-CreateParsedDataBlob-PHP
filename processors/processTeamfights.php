@@ -1,21 +1,21 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
-include_once __DIR__ . "populate.php";
+include_once __DIR__ . "/populate.php";
 
 /**
  * A processor to compute teamfights that occurred given an event stream
  * */
 function processTeamfights(&$entries, &$meta) {
   $currTeamfight;
-  $teamfights;
+  $teamfights = [];
   $intervalState = [];
   $teamfightCooldown = 15;
   $heroToSlot = $meta['hero_to_slot'];
 
   foreach ($entries as $e) {
-    if ($e['type'] === 'killed' && $e['targethero'] && !$e['targetillusion']) {
+    if (isset($e['type']) && $e['type'] === 'killed' && $e['targethero'] && !$e['targetillusion']) {
       // check teamfight state
       $currTeamfight = $currTeamfight ?? [
         'start' => $e['time'] - $teamfightCooldown,
@@ -39,14 +39,14 @@ function processTeamfights(&$entries, &$meta) {
       // update the last_death time of the current fight
       $currTeamfight['last_death'] = $e['time'];
       $currTeamfight['deaths'] += 1;
-    } else if ($e['type'] === 'interval') {
+    } else if (isset($e['type']) && $e['type'] === 'interval') {
       // store hero state at each interval for teamfight lookup
-      if (!$intervalState[$e['time']]) {
+      if (!isset($intervalState[$e['time']])) {
         $intervalState[$e['time']] = [];
       }
       $intervalState[$e['time']][$e['slot']] = $e;
       // check curr_teamfight status
-      if ($currTeamfight && $e['time'] - $currTeamfight['last_death'] >= $teamfightCooldown) {
+      if (isset($currTeamfight) && $e['time'] - $currTeamfight['last_death'] >= $teamfightCooldown) {
         // close it
         $currTeamfight['end'] = $e['time'];
         // push a copy for post-processing
@@ -65,7 +65,7 @@ function processTeamfights(&$entries, &$meta) {
   foreach ($teamfights as &$tf) {
     foreach ($tf['players'] as $ind => &$p) {
       // record player's start/end xp for level change computation
-      if ($intervalState[$tf['start']] && $intervalState[$tf['end']]) {
+      if (isset($intervalState[$tf['start']]) && isset($intervalState[$tf['end']])) {
         $p['xp_start'] = $intervalState[$tf['start']][$ind]['xp'];
         $p['xp_end'] = $intervalState[$tf['end']][$ind]['xp'];
       }
@@ -75,9 +75,9 @@ function processTeamfights(&$entries, &$meta) {
   foreach ($entries as &$e) {
     // check each teamfight to see if this event should be processed as part of that teamfight
     foreach ($teamfights as &$tf) {
-      if ($e['time'] >= $tf['start'] && $e['time'] <= $tf['end']) {
+      if (isset($e['time']) && $e['time'] >= $tf['start'] && $e['time'] <= $tf['end']) {
         if ($e['type'] === 'killed' && $e['targethero'] && !$e['targetillusion']) {
-          populate($e, $tf);
+          populate($e, $tf, $meta);
           // reverse the kill entry to find killed hero
           $r = [
             'time' => $e['time'],
@@ -95,7 +95,7 @@ function processTeamfights(&$entries, &$meta) {
             $r['type'] = 'deaths_pos';
             $r['key'] = \json_encode([$x, $y]);
             $r['posData'] = true;
-            populate($r, $tf);
+            populate($r, $tf, $meta);
             // increment death count for this hero
             $tf['players'][$r['slot']]['deaths'] += 1;
           }
@@ -109,7 +109,7 @@ function processTeamfights(&$entries, &$meta) {
           // check if damage dealt to hero and not illusion
           if ($e['targethero'] && !$e['targetillusion']) {
             // check if the damage dealer could be assigned to a slot
-            if ($tf['players'][$e['slot']]) {
+            if (isset($tf['players'][$e['slot']])) {
               $tf['players'][$e['slot']]['damage'] += $e['value'];
             }
           }
@@ -118,13 +118,13 @@ function processTeamfights(&$entries, &$meta) {
           // check if healing dealt to hero and not illusion
           if ($e['targethero'] && !$e['targetillusion']) {
             // check if the healing dealer could be assigned to a slot
-            if ($tf['players'][$e['slot']]) {
+            if (isset($tf['players'][$e['slot']])) {
               $tf['players'][$e['slot']]['healing'] += $e['value'];
             }
           }
         } else if ($e['type'] === 'gold_reasons' || $e['type'] === 'xp_reasons') {
           // add gold/xp to delta
-          if ($tf['players'][$e['slot']]) {
+          if (isset($tf['players'][$e['slot']])) {
             $types = [
               'gold_reasons' => 'gold_delta',
               'xp_reasons' => 'xp_delta',
@@ -133,12 +133,14 @@ function processTeamfights(&$entries, &$meta) {
           }
         } else if ($e['type'] === 'ability_uses' || $e['type'] === 'item_uses') {
           // count skills, items
-          populate($e, $tf);
+          populate($e, $tf, $meta);
         }
       }
     }
   }
   return $teamfights;
+}
+
 }
 
 ?>

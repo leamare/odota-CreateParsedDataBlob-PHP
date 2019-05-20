@@ -1,8 +1,8 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob\LogParse {
 
-include_once __DIR__ . "../util/php_utility.php";
+include_once __DIR__ . "/../util/php_utility.php";
 
 $significantModifiers = [
   'modifier_stunned' => 1,
@@ -78,5 +78,6 @@ function processReduce(&$entries, &$meta) {
   return $result;
 }
 
-?>
+}
 
+?>

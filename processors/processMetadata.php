@@ -1,8 +1,8 @@
 <?php 
 
-namespace \CreateParsedDataBlob;
+namespace CreateParsedDataBlob {
 
-include __DIR__ . "../from_camel_case.php";
+include __DIR__ . "/../__includes/from_camel_case.php";
 
 /**
  * Given an event stream, extracts metadata such as game zero time and hero to slot/ID mappings.
@@ -12,9 +12,9 @@ function processMetadata(&$entries) {
   $slotToPlayerslot = [];
   $heroIdToSlot = [];
   $metaTypes = [
-    'interval' => function ($e) {
+    'interval' => function ($e) use (&$slotToPlayerslot, &$heroIdToSlot, &$heroToSlot) {
       // check if hero has been assigned to entity
-      if ($e['hero_id']) {
+      if (!empty($e['hero_id'])) {
         // grab the end of the name, lowercase it
         $ending = \str_replace('CDOTA_Unit_Hero_', '', $e['unit']);
         // the combat log name could involve replacing camelCase with _ or not!
@@ -30,14 +30,14 @@ function processMetadata(&$entries) {
         $heroIdToSlot[$e['hero_id']] = $e['slot'];
       }
     },
-    'player_slot' => function ($e) {
+    'player_slot' => function ($e) use (&$slotToPlayerslot) {
       // map slot number (0-9) to playerslot (0-4, 128-132)
       $slotToPlayerslot[$e['key']] = $e['value'];
     },
   ];
 
   foreach ($entries as $e) {
-    if ($metaTypes[ $e['type'] ])
+    if (isset($metaTypes[ $e['type'] ]))
       $metaTypes[ $e['type'] ]($e);
   }
 
@@ -48,4 +48,5 @@ function processMetadata(&$entries) {
   ];
 }
 
+}
 ?>

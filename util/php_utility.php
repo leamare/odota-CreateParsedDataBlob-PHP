@@ -48,6 +48,13 @@ function array_every(array $values, $func) {
   return true;
 }
 
+function bytes_to_string(array $bytes): string {
+  $out = "";
+  foreach ($bytes as $b)
+    $out .= chr($b);
+  return $out;
+}
+
 }
 
 ?>

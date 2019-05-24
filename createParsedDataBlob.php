@@ -63,6 +63,8 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
 }
 
 function parseStream($stream, $doLogParse = true) {
+  if (!isset($GLOBALS['metadata'])) $GLOBALS['metadata'] = prepareMetadata();
+
   $entries = [];
 
   $stream = \fopen($stream, "r") or die("Unable to open stream");

@@ -20,7 +20,7 @@ namespace CreateParsedDataBlob {
     $patches = \json_decode($patches, true);
 
     $patches = array_filter($patches, function($v) {
-      return strlen($v['name']) < 4;
+      return strlen($v['name']) < 5;
     });
 
     $metadata['patch'] = sizeof($patches);

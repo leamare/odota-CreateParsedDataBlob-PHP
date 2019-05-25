@@ -161,7 +161,7 @@ namespace CreateParsedDataBlob {
     foreach ($entries as &$e) {
       switch ($e['type']) {
         case 'interval':
-          if (isset($player['hero_id'])) {
+          if (isset($e['hero_id'])) {
             $player =& $container['players'][$e['slot']];
             $player['hero_id'] = $e['hero_id'];
             $player['level'] = $e['level'];
@@ -197,9 +197,9 @@ namespace CreateParsedDataBlob {
       $pl['kda'] = \floor(($pl['kills']+$pl['assists']) / ($pl['deaths']+1));
       $pl['buyback_count'] = sizeof($pl['buyback_log']);
       $pl['total_gold'] = end($pl['gold_t']);
-      $pl['gpm'] = \round($pl['total_gold'] / floor($container['duration']/60));
+      $pl['gold_per_min'] = \round($pl['total_gold'] / floor($container['duration']/60));
       $pl['total_xp'] = end($pl['xp_t']);
-      $pl['xpm'] = \round($pl['total_xp'] / floor($container['duration']/60));
+      $pl['xp_per_min'] = \round($pl['total_xp'] / floor($container['duration']/60));
 
       // hero/tower damage
       $pl['hero_damage'] = 0;

@@ -12,8 +12,8 @@ $options = getopt("lv", [
 
 $data = parseStream(
   "php://stdin", 
-  $options['do-log-parse'] ?? $options['l'],
-  $options['verbose'] ?? $options['v']
+  $options['do-log-parse'] ?? $options['l'] ?? false,
+  $options['verbose'] ?? $options['v'] ?? false
 );
 
 echo \json_encode($data);

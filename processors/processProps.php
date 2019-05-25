@@ -107,7 +107,7 @@ namespace CreateParsedDataBlob {
     } else if (isset($epilogue_props['direTeamId_'])) {
       $container['dire_team_id'] = $epilogue_props['direTeamId_'];
 
-      $team = util\get_team_data($container['dire_team_id']);
+      $team = utils\get_team_data($container['dire_team_id']);
       $container['dire_team'] = [
         'team_id' => $container['dire_team_id'],
         'name' => $team['name'],

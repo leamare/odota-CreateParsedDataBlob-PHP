@@ -57,10 +57,10 @@ function bytes_to_string(array $bytes): string {
 
 function get_tower_statuses(array $objectives): array {
   $statuses = [
-    "barracks_status_dire" => "0000000000000000",
-    "barracks_status_radiant" => "0000000000000000",
-    "tower_status_dire" => "00000000",
-    "tower_status_radiant" => "00000000",
+    "barracks_status_dire" => "0000011111111111",
+    "barracks_status_radiant" => "0000011111111111",
+    "tower_status_dire" => "00111111",
+    "tower_status_radiant" => "00111111",
   ];
 
   foreach ($objectives as $obj) {
@@ -70,9 +70,9 @@ function get_tower_statuses(array $objectives): array {
 
     if (strpos($obj['key'], 'tower4')) {
       if (isset($statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 5 ]))
-        $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 5 ] = '1';
+        $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 5 ] = '0';
       else
-        $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 6 ] = '1';
+        $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 6 ] = '0';
     } else if (strpos($obj['key'], 'tower')) {
       $params = explode(
         ",",
@@ -82,7 +82,7 @@ function get_tower_statuses(array $objectives): array {
         $params[1] === 'mid' ? 1 : 2
       );
       $id = 3 * $lane + $params[0];
-      $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 16 - $id ] = '1';
+      $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 16 - $id ] = '0';
     } else if (strpos($obj['key'], 'rax')) {
       $params = explode(
         ",",
@@ -94,7 +94,7 @@ function get_tower_statuses(array $objectives): array {
       $isMelee = $params[0] === 'melee' ? 0 : 1;
       
       $id = 2 * $lane + $isMelee;
-      $statuses["barracks_status_".($isRadiant ? "radiant" : "dire")][ 8 - $id ] = '1';
+      $statuses["barracks_status_".($isRadiant ? "radiant" : "dire")][ 8 - $id ] = '0';
     }
   }
 

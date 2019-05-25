@@ -4,7 +4,7 @@ namespace CreateParsedDataBlob {
 
 include "__includes/__matchdataDummy.php";
 
-include "__includes/readline.php";
+include "__includes/prepareMetadata.php";
 
 include "processors/processAllPlayers.php";
 include "processors/processTeamfights.php";
@@ -75,7 +75,7 @@ function parseStream($stream, $doLogParse = true) {
   while(!\feof($stream)) {
     $e = \json_decode(\trim(\fgets($stream)), true);
     if ($e['type'] === 'epilogue') {
-      $epilogue = \json_decode($e['key'], true);
+      $epilogue = \json_decode($e['key'], true, 512, JSON_BIGINT_AS_STRING);
       break;
     } else 
       $entries[] = $e;

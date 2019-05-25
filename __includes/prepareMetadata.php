@@ -2,6 +2,17 @@
 
 namespace CreateParsedDataBlob {
 
+  CONST _DOTA_Dust_Cost = 180;
+  CONST _DOTA_Obs_Ward_Cost = 50;
+  CONST _DOTA_Sentry_Ward_Cost = 75;
+  CONST _DOTA_Salve_Cost = 110;
+  CONST _DOTA_Mango_Cost = 70;
+  CONST _DOTA_FaerieFire_Cost = 70;
+  CONST _DOTA_Smoke_Cost = 80;
+  CONST _DOTA_Tango_Cost = 90;
+  CONST _DOTA_Scroll_Cost = 50;
+  CONST _DOTA_Clarity_Cost = 50;
+
   function prepareMetadata() {
     $metadata = [];
 

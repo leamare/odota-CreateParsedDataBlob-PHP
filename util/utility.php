@@ -16,7 +16,7 @@ function isRadiant($player) {
  * Takes and returns a string
  */
 function convert64to32($id) {
-  $accountID = bcsub($id, '76561197960265728');
+  $accountID = bcsub((string)$id, '76561197960265728');
   //$w = bcdiv($accountID, 2)*2 + bcmod($accountID, '2');
   //return 'STEAM_0:'.bcmod($accountID, '2').':'.bcdiv($accountID, 2);
   return $accountID;
@@ -59,7 +59,7 @@ function getLaneFromPosData($lanePos, $isRadiant) {
     }
   }
   
-  [ $lane, $count ] = modeWithCount($lanes);
+  [ 'mode' => $lane, 'count' => $count ] = modeWithCount($lanes);
   /**
   * Player presence on lane. Calculated by the count of the prominant
   * lane (`count` of mode) divided by the presence on all lanes (`lanes.length`).

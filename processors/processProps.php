@@ -4,17 +4,6 @@ namespace CreateParsedDataBlob {
   
   include_once __DIR__ . "/../util/php_utility.php";
 
-  CONST _DOTA_Dust_Cost = 180;
-  CONST _DOTA_Obs_Ward_Cost = 50;
-  CONST _DOTA_Sentry_Ward_Cost = 75;
-  CONST _DOTA_Salve_Cost = 110;
-  CONST _DOTA_Mango_Cost = 70;
-  CONST _DOTA_FaerieFire_Cost = 70;
-  CONST _DOTA_Smoke_Cost = 80;
-  CONST _DOTA_Tango_Cost = 90;
-  CONST _DOTA_Scroll_Cost = 50;
-  CONST _DOTA_Clarity_Cost = 50;
-
   function processProps(&$entries, &$container, $epilogue, $meta) {
     /**
      * Missing stuff that we have no way to get anyhow:
@@ -27,8 +16,10 @@ namespace CreateParsedDataBlob {
        * cosmetics - we can use cosmetics array tho, but I don't think it's necessary slot->[]->item_id
      */
 
-    $epilogue_props = \json_decode($epilogue['key'], true)['gameInfo']['dota_'];
+    $epilogue_props = $epilogue['gameInfo_']['dota_'];
     $container['match_id'] = $epilogue_props['matchId_'];
+    $container['parse_time'] = time();
+    $container['parser_type'] = "clarity-odota;CreateParsedDataBlobPHP";
     
     if (isset($GLOBALS['steamapikey'])) {
       $match_details = file_get_contents("http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=".$GLOBALS['steamapikey']."&match_id=".$container['match_id']);
@@ -75,10 +66,10 @@ namespace CreateParsedDataBlob {
       $container['radiant_score'] = 0;
       $container['dire_score'] = 0;
       foreach ($container['players'] as $slot => $pl) {
-        $is_radiant = !($slot < 5);
+        $is_radiant = ($slot < 5);
         foreach ($pl['killed_by'] as $killer => $deaths) {
-          if (strpos($is_radiant ? "_badguys" : "_goodguys") !== false || 
-            ( isset($meta['hero_to_slot'][$killer]) && ($meta['hero_to_slot'][$killer] < 128 XOR $is_radiant) ) )
+          if (strpos($killer, $is_radiant ? "_badguys" : "_goodguys") === false && 
+            ( isset($meta['hero_to_slot'][$killer]) && ($meta['hero_to_slot'][$killer] < 5 XOR $is_radiant) ) )
             $container[($is_radiant ? 'dire' : 'radiant').'_score'] += $deaths;
         }
       }
@@ -166,17 +157,19 @@ namespace CreateParsedDataBlob {
     foreach ($entries as &$e) {
       switch ($e['type']) {
         case 'interval':
-          $player =& $container['players'][$e['player_slot']];
-          $player['hero_id'] = $e['hero_id'];
-          $player['level'] = $e['level'];
-          $player['gold'] = $e['gold'];
-          $player['last_hits'] = $e['lh'];
-          $player['xp'] = $e['xp'];
-          $player['stuns'] = $e['stuns'];
-          $player['kills'] = $e['kills'];
-          $player['deaths'] = $e['deaths'];
-          $player['assists'] = $e['assists'];
-          $player['denies'] = $e['denies'];
+          if (isset($player['hero_id'])) {
+            $player =& $container['players'][$e['slot']];
+            $player['hero_id'] = $e['hero_id'];
+            $player['level'] = $e['level'];
+            $player['gold'] = $e['gold'];
+            $player['last_hits'] = $e['lh'];
+            $player['xp'] = $e['xp'];
+            $player['stuns'] = $e['stuns'];
+            $player['kills'] = $e['kills'];
+            $player['deaths'] = $e['deaths'];
+            $player['assists'] = $e['assists'];
+            $player['denies'] = $e['denies'];
+          }
           break;
         default:
           break;
@@ -184,9 +177,9 @@ namespace CreateParsedDataBlob {
     }
 
     foreach ($container['players'] as $slot => &$pl) {
-      $pl['isRadiant'] = odota\core\utils\isRadiant($pl);
+      $pl['isRadiant'] = \odota\core\utils\isRadiant($pl);
       $pl['account_id'] = $match_details['result']['players'][$slot]['account_id'] ?? 
-        odota\core\utils\convert64to32($epilogue_props['playerInfo_'][$slot]['steamid_']);
+        \odota\core\utils\convert64to32($epilogue_props['playerInfo_'][$slot]['steamid_']);
       $pl['pings'] = $pl['pings'][0];
       $pl['personaname'] = utils\bytes_to_string($epilogue_props['playerInfo_'][$slot]['playerName_']['bytes']);
       $pl['name'] = null;
@@ -194,12 +187,15 @@ namespace CreateParsedDataBlob {
       $pl['win'] = $pl['isRadiant'] == $container['radiant_win'] ? 1 : 0;
       $pl['lose'] = $pl['win'] ? 0 : 1;
 
-      $pl['kda'] = floor(($pl['kills']+$pl['assists']) / ($pl['deaths']+1));
+      $pl['kills'] = sizeof($pl['kills_log']);
+      $pl['assists'] = \round(($container[($pl['isRadiant'] ? 'radiant' : 'dire').'_score'] * $pl['teamfight_participation']) - $pl['kills']);
+      $pl['deaths'] = \array_sum($pl['killed_by']);
+      $pl['kda'] = \floor(($pl['kills']+$pl['assists']) / ($pl['deaths']+1));
       $pl['buyback_count'] = sizeof($pl['buyback_log']);
       $pl['total_gold'] = end($pl['gold_t']);
-      $pl['gpm'] = $pl['total_gold'] / floor($container['duration']/60);
+      $pl['gpm'] = \round($pl['total_gold'] / floor($container['duration']/60));
       $pl['total_xp'] = end($pl['xp_t']);
-      $pl['xpm'] = $pl['total_xp'] / floor($container['duration']/60);
+      $pl['xpm'] = \round($pl['total_xp'] / floor($container['duration']/60));
 
       // hero/tower damage
       $pl['hero_damage'] = 0;
@@ -217,21 +213,28 @@ namespace CreateParsedDataBlob {
           $pl['hero_healing'] += $heal;
       }
       
+      // hero/tower damage
+      $pl['hero_damage_taken'] = 0;
+      foreach ($pl['damage_taken'] as $k => $dmg) {
+        if (strpos($k, "npc_dota_hero") === 0)
+          $pl['hero_damage_taken'] += $dmg;
+      }
+
       // it's not as accurate, but it's something
       $pl['gold_spent'] = \array_sum($pl['gold_reasons']);
-      $pl['gold_spent'] += \floor($pl['item_uses']['dust']/2) * _DOTA_Dust_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['ward_observer'] * _DOTA_Obs_Ward_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['ward_sentry'] * _DOTA_Sentry_Ward_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['flask'] * _DOTA_Salve_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['clarity'] * _DOTA_Salve_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['enchanted_mango'] * _DOTA_Mango_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['faerie_fire'] * _DOTA_FaerieFire_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['smoke_of_deceit'] * _DOTA_Smoke_Cost;
-      $pl['gold_spent'] += \ceil($pl['item_uses']['tango']/3) * _DOTA_Tango_Cost;
-      $pl['gold_spent'] += $pl['item_uses']['tpscroll'] * _DOTA_Scroll_Cost;
+      $pl['gold_spent'] += \floor(($pl['item_uses']['dust'] ?? 0)/2) * _DOTA_Dust_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['ward_observer'] ?? 0) * _DOTA_Obs_Ward_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['ward_sentry'] ?? 0) * _DOTA_Sentry_Ward_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['flask'] ?? 0) * _DOTA_Salve_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['clarity'] ?? 0) * _DOTA_Salve_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['enchanted_mango'] ?? 0) * _DOTA_Mango_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['faerie_fire'] ?? 0) * _DOTA_FaerieFire_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['smoke_of_deceit'] ?? 0) * _DOTA_Smoke_Cost;
+      $pl['gold_spent'] += \ceil(($pl['item_uses']['tango'] ?? 0)/3) * _DOTA_Tango_Cost;
+      $pl['gold_spent'] += ($pl['item_uses']['tpscroll'] ?? 0) * _DOTA_Scroll_Cost;
 
       // copy
-      $pl['matchid'] = $container['matchid'];
+      $pl['match_id'] = $container['match_id'];
       $pl['radiant_win'] = $container['radiant_win'];
       $pl['start_time'] = $container['start_time'];
       $pl['duration'] = $container['duration'];
@@ -291,7 +294,7 @@ namespace CreateParsedDataBlob {
       }
 
       if ($pl['lane_pos']) {
-        $laneData = odota\core\utils\getLaneFromPosData($pl['lane_pos'], odota\core\utils\isRadiant($pl));
+        $laneData = \odota\core\utils\getLaneFromPosData($pl['lane_pos'], \odota\core\utils\isRadiant($pl));
         $pl['lane'] = $laneData['lane'];
         $pl['lane_role'] = $laneData['lane_role'];
         $pl['is_roaming'] = $laneData['is_roaming'];
@@ -319,18 +322,18 @@ namespace CreateParsedDataBlob {
           }
           $pl['purchase_time'][$k] += $time;
           $pl['item_usage'][$k] = 1;
-          $pl['item_win'][$k] = odota\core\utils\isRadiant(pm) === $pl['radiant_win'] ? 1 : 0;
+          $pl['item_win'][$k] = \odota\core\utils\isRadiant(pm) === $pl['radiant_win'] ? 1 : 0;
         }
       }
 
       if (isset($pl['purchase'])) {
         // account for stacks
-        $pl['purchase']['dust'] *= 2;
-        $pl['purchase_ward_observer'] = $pl['purchase']['ward_observer'];
-        $pl['purchase_ward_sentry'] = $pl['purchase']['ward_sentry'];
-        $pl['purchase_tpscroll'] = $pl['purchase']['tpscroll'];
-        $pl['purchase_rapier'] = $pl['purchase']['rapier'];
-        $pl['purchase_gem'] = $pl['purchase']['gem'];
+        $pl['purchase']['dust'] = ($pl['purchase']['dust'] ?? 0) * 2;
+        $pl['purchase_ward_observer'] = $pl['purchase']['ward_observer'] ?? 0;
+        $pl['purchase_ward_sentry'] = $pl['purchase']['ward_sentry'] ?? 0;
+        $pl['purchase_tpscroll'] = $pl['purchase']['tpscroll'] ?? 0;
+        $pl['purchase_rapier'] = $pl['purchase']['rapier'] ?? 0;
+        $pl['purchase_gem'] = $pl['purchase']['gem'] ?? 0;
       }
 
       if (isset($pl['actions']) && isset($pl['duration'])) {

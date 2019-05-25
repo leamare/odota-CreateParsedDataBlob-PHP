@@ -3,6 +3,7 @@
 namespace CreateParsedDataBlob {
   
   include_once __DIR__ . "/../util/php_utility.php";
+  include_once __DIR__ . "/../util/utility.php";
 
   function processProps(&$entries, &$container, $epilogue, $meta) {
     /**
@@ -68,7 +69,7 @@ namespace CreateParsedDataBlob {
       foreach ($container['players'] as $slot => $pl) {
         $is_radiant = ($slot < 5);
         foreach ($pl['killed_by'] as $killer => $deaths) {
-          if (strpos($killer, $is_radiant ? "_badguys" : "_goodguys") === false && 
+          if (strpos($killer, $is_radiant ? "_badguys" : "_goodguys") !== false || 
             ( isset($meta['hero_to_slot'][$killer]) && ($meta['hero_to_slot'][$killer] < 5 XOR $is_radiant) ) )
             $container[($is_radiant ? 'dire' : 'radiant').'_score'] += $deaths;
         }
@@ -88,9 +89,10 @@ namespace CreateParsedDataBlob {
       ];
     } else if (isset($epilogue_props['radiantTeamId_'])) {
       $container['radiant_team_id'] = $epilogue_props['radiantTeamId_'];
+      $team = utils\get_team_data($container['radiant_team_id']);
       $container['radiant_team'] = [
         'team_id' => $container['radiant_team_id'],
-        'name' => null,
+        'name' => $team['name'],
         'tag' => utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']),
       ];
     } else $container['radiant_team_id'] = null;
@@ -104,9 +106,11 @@ namespace CreateParsedDataBlob {
       ];
     } else if (isset($epilogue_props['direTeamId_'])) {
       $container['dire_team_id'] = $epilogue_props['direTeamId_'];
+
+      $team = util\get_team_data($container['dire_team_id']);
       $container['dire_team'] = [
         'team_id' => $container['dire_team_id'],
-        'name' => null,
+        'name' => $team['name'],
         'tag' => utils\bytes_to_string($epilogue_props['direTeamTag_']['bytes']),
       ];
     } else $container['dire_team_id'] = null;
@@ -347,8 +351,12 @@ namespace CreateParsedDataBlob {
       if (isset($pl['life_state'])) {
         $pl['life_state_dead'] = ($pl['life_state'][1] ?? 0) + ($pl['life_state'][2] ?? 0);
       }
+
+      ksort($pl);
     }
   
+    ksort($container);
+
     return $container;
   }
   

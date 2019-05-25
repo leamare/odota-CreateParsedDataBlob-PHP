@@ -16,17 +16,19 @@ include "processors/processDraftTimings.php";
 include "processors/processProps.php";
 // TODO smokes
 
-function createParsedDataBlob($entries, $epilogue, $doLogParse) {
+function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false) {
   $time = [];
 
   $stream = \fopen("php://stderr", "w") or die("Unable to open stderr stream");
   
   $matchid = $epilogue['gameInfo_']['dota_']['matchId_'];
 
+  //if ($verbose) \file_put_contents("php://stderr", "[ ] metadata: ");
   $time['metadata'] = [ 'start' => \microtime(true) ];
   $meta = processMetadata($entries);
   $meta['match_id'] = $matchid;
   $time['metadata']['end'] = \microtime(true);
+  //if ($verbose) \file_put_contents("php://stderr", $time['metadata']['end']-$time['metadata']['start']);
 
   $time['expand'] = [ 'start' => \microtime(true) ];
   $expanded = processExpand($entries, $meta);
@@ -66,7 +68,7 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   return $parsedData;
 }
 
-function parseStream($stream, $doLogParse = true) {
+function parseStream($stream, $doLogParse = true, $verbose = false) {
   if (!isset($GLOBALS['metadata'])) $GLOBALS['metadata'] = prepareMetadata();
 
   $entries = [];
@@ -82,7 +84,7 @@ function parseStream($stream, $doLogParse = true) {
   }
   \fclose($stream);
   
-  $parsedData = createParsedDataBlob($entries, $epilogue, $doLogParse);
+  $parsedData = createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose);
 
   return $parsedData;
 }

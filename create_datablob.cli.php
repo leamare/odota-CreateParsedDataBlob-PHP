@@ -5,7 +5,16 @@ namespace CreateParsedDataBlob
 
 include "createParsedDataBlob.php";
 
-$data = parseStream("php://stdin", (bool)($argv[1] ?? false));
+$options = getopt("lv", [
+  "do-log-parse",
+  "verbose",
+]);
+
+$data = parseStream(
+  "php://stdin", 
+  $options['do-log-parse'] ?? $options['l'],
+  $options['verbose'] ?? $options['v']
+);
 
 echo \json_encode($data);
 

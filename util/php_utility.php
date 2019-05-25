@@ -106,6 +106,16 @@ function get_tower_statuses(array $objectives): array {
   ];
 }
 
+function get_team_data($id) {
+  return \json_decode(
+    \file_get_contents(
+      "http://api.steampowered.com/IDOTA2Match_570/GetTeamInfoByTeamID/v1?key=".$GLOBALS['steamapikey'].
+      "&start_at_team_id=".$id."&teams_requested=1"
+    ), 
+    true
+  )['result']['teams'][0];
+}
+
 }
 
 ?>

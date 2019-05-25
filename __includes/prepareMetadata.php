@@ -23,7 +23,7 @@ namespace CreateParsedDataBlob {
       return strlen($v['name']) < 5;
     });
 
-    $metadata['patch'] = sizeof($patches);
+    $metadata['patch'] = sizeof($patches) - 2;
 
     // FIXME
     $metadata['ancients'] = [

@@ -135,17 +135,17 @@ namespace CreateParsedDataBlob {
     $radiantGoldAdvantage = $container['radiant_gold_adv'];
     $throwVal = $container['radiant_win'] ? max($radiantGoldAdvantage) : min($radiantGoldAdvantage) * -1;
     $comebackVal = $container['radiant_win'] ? min($radiantGoldAdvantage) * -1 : max($radiantGoldAdvantage);
-    $lossVal = $container['radiant_win'] ? min($radiantGoldAdvantage) * -1 : max($radiantGoldAdvantage);
-    $stompVal = $container['radiant_win'] ? max($radiantGoldAdvantage) : min($radiantGoldAdvantage) * -1;
 
     if (!$container['radiant_win'])
       $container['throw'] = $throwVal;
+    else 
+      $container['stomp'] = $throwVal;
+
     if ($container['radiant_win'])
       $container['comeback'] = $comebackVal;
-    if (!$container['radiant_win'])
-      $container['loss'] = $lossVal;
-    if ($container['radiant_win'])
-      $container['stomp'] = $stompVal;
+    else
+      $container['loss'] = $comebackVal;
+      
 
     // some data we have no clue about
     $container['replay_salt'] = null; // we need it to download replays, but there's no easy
@@ -352,10 +352,10 @@ namespace CreateParsedDataBlob {
         $pl['life_state_dead'] = ($pl['life_state'][1] ?? 0) + ($pl['life_state'][2] ?? 0);
       }
 
-      ksort($pl);
+      //ksort($pl);
     }
   
-    ksort($container);
+    //ksort($container);
 
     return $container;
   }

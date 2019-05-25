@@ -4,7 +4,29 @@ namespace CreateParsedDataBlob {
   
   include_once __DIR__ . "/../util/php_utility.php";
 
+  CONST _DOTA_Dust_Cost = 180;
+  CONST _DOTA_Obs_Ward_Cost = 50;
+  CONST _DOTA_Sentry_Ward_Cost = 75;
+  CONST _DOTA_Salve_Cost = 110;
+  CONST _DOTA_Mango_Cost = 70;
+  CONST _DOTA_FaerieFire_Cost = 70;
+  CONST _DOTA_Smoke_Cost = 80;
+  CONST _DOTA_Tango_Cost = 90;
+  CONST _DOTA_Scroll_Cost = 50;
+  CONST _DOTA_Clarity_Cost = 50;
+
   function processProps(&$entries, &$container, $epilogue, $meta) {
+    /**
+     * Missing stuff that we have no way to get anyhow:
+     * 
+     * PLAYERS: 
+       * ability_upgrades_arr
+       * additional_units
+       * items: backpack_#, item_#
+       * permanent_buffs
+       * cosmetics - we can use cosmetics array tho, but I don't think it's necessary slot->[]->item_id
+     */
+
     $epilogue_props = \json_decode($epilogue['key'], true)['gameInfo']['dota_'];
     $container['match_id'] = $epilogue_props['matchId_'];
     
@@ -110,8 +132,9 @@ namespace CreateParsedDataBlob {
       }
     }
 
-    //* barracks_status_side, tower_status_side (?)
-    //* comeback, stomp, loss, throw - recalculate
+    //* barracks_status_side, tower_status_side
+    foreach (utils\get_tower_statuses($container['objectives']) as $k => $v)
+      $container[$k] = $v;
 
     // compute throw/comeback levels
     $radiantGoldAdvantage = $container['radiant_gold_adv'];
@@ -179,9 +202,33 @@ namespace CreateParsedDataBlob {
       $pl['xpm'] = $pl['total_xp'] / floor($container['duration']/60);
 
       // hero/tower damage
-      // gold spent
-      // healing
-      // 
+      $pl['hero_damage'] = 0;
+      $pl['tower_damage'] = 0;
+      foreach ($pl['damage'] as $k => $dmg) {
+        if (strpos($k, "npc_dota_hero") === 0)
+          $pl['hero_damage'] += $dmg;
+        if (strpos($k, "tower") !== false || strpos($k, "fort") !== false || strpos($k, "rax") !== false)
+          $pl['tower_damage'] += $dmg;
+      }
+
+      $pl['hero_healing'] = 0;
+      foreach ($pl['healing'] as $k => $heal) {
+        if (strpos($k, "npc_dota_hero") === false)
+          $pl['hero_healing'] += $heal;
+      }
+      
+      // it's not as accurate, but it's something
+      $pl['gold_spent'] = \array_sum($pl['gold_reasons']);
+      $pl['gold_spent'] += \floor($pl['item_uses']['dust']/2) * _DOTA_Dust_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['ward_observer'] * _DOTA_Obs_Ward_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['ward_sentry'] * _DOTA_Sentry_Ward_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['flask'] * _DOTA_Salve_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['clarity'] * _DOTA_Salve_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['enchanted_mango'] * _DOTA_Mango_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['faerie_fire'] * _DOTA_FaerieFire_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['smoke_of_deceit'] * _DOTA_Smoke_Cost;
+      $pl['gold_spent'] += \ceil($pl['item_uses']['tango']/3) * _DOTA_Tango_Cost;
+      $pl['gold_spent'] += $pl['item_uses']['tpscroll'] * _DOTA_Scroll_Cost;
 
       // copy
       $pl['matchid'] = $container['matchid'];
@@ -238,8 +285,8 @@ namespace CreateParsedDataBlob {
         $siege = (74 * 2);
         $passive = (600 * 1.5);
         $starting = 625;
-        $tenMinute = melee + ranged + siege + passive + starting;
-        $pl['lane_efficiency'] = $pl['gold_t'][10] / tenMinute;
+        $tenMinute = $melee + $ranged + $siege + $passive + $starting;
+        $pl['lane_efficiency'] = $pl['gold_t'][10] / $tenMinute;
         $pl['lane_efficiency_pct'] = floor($pl['lane_efficiency'] * 100);
       }
 
@@ -250,49 +297,49 @@ namespace CreateParsedDataBlob {
         $pl['is_roaming'] = $laneData['is_roaming'];
       }
 
-      /*
       // compute hashes of purchase time sums and counts from logs
-      if (pm.purchase_log) {
+      if ($pl['purchase_log']) {
         // remove ward dispenser and recipes
-        pm.purchase_log = pm.purchase_log.filter(purchase => !(purchase.key.indexOf('recipe_') === 0 || purchase.key === 'ward_dispenser'));
-        pm.purchase_time = {};
-        pm.first_purchase_time = {};
-        pm.item_win = {};
-        pm.item_usage = {};
-        for (let i = 0; i < pm.purchase_log.length; i += 1) {
-          const k = pm.purchase_log[i].key;
-          const { time } = pm.purchase_log[i];
-          if (!pm.purchase_time[k]) {
-            pm.purchase_time[k] = 0;
+        $pl['purchase_log'] = \array_filter($pl['purchase_log'], function($purchase) {
+          !(strpos($purchase['key'], 'recipe_') === 0 || $purchase['key'] === 'ward_dispenser');
+        });
+        $pl['purchase_time'] = [];
+        $pl['first_purchase_time'] = [];
+        $pl['item_win'] = [];
+        $pl['item_usage'] = [];
+        foreach($pl['purchase_log'] as $v) {
+          $k = $v['key'];
+          $time = $v['time'];
+          if (!isset($pl['purchase_time'][$k])) {
+            $pl['purchase_time'][$k] = 0;
           }
           // Store first purchase time for every item
-          if (!pm.first_purchase_time[k]) {
-            pm.first_purchase_time[k] = time;
+          if (!isset($pl['first_purchase_time'][$k])) {
+            $pl['first_purchase_time'][$k] = $time;
           }
-          pm.purchase_time[k] += time;
-          pm.item_usage[k] = 1;
-          pm.item_win[k] = isRadiant(pm) === pm.radiant_win ? 1 : 0;
+          $pl['purchase_time'][$k] += $time;
+          $pl['item_usage'][$k] = 1;
+          $pl['item_win'][$k] = odota\core\utils\isRadiant(pm) === $pl['radiant_win'] ? 1 : 0;
         }
-    }
+      }
 
-    if (pm.purchase) {
-      // account for stacks
-      pm.purchase.dust *= 2;
-      pm.purchase_ward_observer = pm.purchase.ward_observer;
-      pm.purchase_ward_sentry = pm.purchase.ward_sentry;
-      pm.purchase_tpscroll = pm.purchase.tpscroll;
-      pm.purchase_rapier = pm.purchase.rapier;
-      pm.purchase_gem = pm.purchase.gem;
-    }
+      if (isset($pl['purchase'])) {
+        // account for stacks
+        $pl['purchase']['dust'] *= 2;
+        $pl['purchase_ward_observer'] = $pl['purchase']['ward_observer'];
+        $pl['purchase_ward_sentry'] = $pl['purchase']['ward_sentry'];
+        $pl['purchase_tpscroll'] = $pl['purchase']['tpscroll'];
+        $pl['purchase_rapier'] = $pl['purchase']['rapier'];
+        $pl['purchase_gem'] = $pl['purchase']['gem'];
+      }
 
-    if (pm.actions && pm.duration) {
-      let actionsSum = 0;
-      Object.keys(pm.actions).forEach((key) => {
-        actionsSum += pm.actions[key];
-      });
-      pm.actions_per_min = Math.floor((actionsSum / pm.duration) * 60);
-    }
-    */
+      if (isset($pl['actions']) && isset($pl['duration'])) {
+        $actionsSum = 0;
+        foreach ($pl['actions'] as $v) {
+          $actionsSum += $v;
+        }
+        $pl['actions_per_min'] = floor(($actionsSum / $pl['duration']) * 60);
+      }
 
       if (isset($pl['life_state'])) {
         $pl['life_state_dead'] = ($pl['life_state'][1] ?? 0) + ($pl['life_state'][2] ?? 0);
@@ -303,24 +350,3 @@ namespace CreateParsedDataBlob {
   }
   
 }
-
-/**
- * props to find:
- * 
- * barracks_status_side, tower_status_side (?)
- * 
- * players:
- * ability_upgrades_arr
- * additional_units
- * items: backpack_#, item_# (?) -- or skip
- * hero_damage
- * gold_spent -- purchases + lost gold?
- * hero_healing -- sum healing
- * permanent_buffs - ???
- * tower_damage
- * lane -- seek for utils
- * cosmetics - slot->[]->item_id
- * 
- * 
- * {"time":-860,"type":"cosmetics","key":"{\"9986\":3,\"5634\":128,\"9988\":3,\"6020\":130,\"6277\":3,\"6021\":130,\"9990\":3,\"647\":132,\"9991\":3,\"5639\":128,\"4361\":129,\"9482\":132,\"9483\":132,\"9741\":3,\"5776\":131,\"6291\":132,\"9749\":0,\"4764\":129,\"6432\":1,\"6433\":1,\"8865\":129,\"8994\":0,\"8866\":129,\"6435\":1,\"6948\":128,\"6054\":132,\"8871\":129,\"6952\":128,\"7595\":0,\"6830\":129,\"8627\":130,\"10424\":0,\"6714\":128,\"8130\":130,\"5957\":4,\"8919\":0,\"8920\":0,\"11998\":0,\"6504\":3,\"8176\":4,\"5105\":129,\"6004\":1,\"6136\":130,\"7033\":4,\"6137\":130,\"6138\":130,\"6139\":130,\"7036\":4,\"6140\":130,\"7935\":1,\"5631\":128}"}
- */

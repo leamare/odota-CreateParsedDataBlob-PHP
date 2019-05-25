@@ -13,8 +13,8 @@ include "processors/processParsedData.php";
 include "processors/processMetadata.php";
 include "processors/processExpand.php";
 include "processors/processDraftTimings.php";
+include "processors/processProps.php";
 // TODO smokes
-// TODO epilogue
 
 function createParsedDataBlob($entries, $epilogue, $doLogParse) {
   $time = [];
@@ -51,6 +51,10 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse) {
 
   $parsedData['radiant_gold_adv'] = $ap['radiant_gold_adv'];
   $parsedData['radiant_xp_adv'] = $ap['radiant_xp_adv'];
+
+  $time['processProps'] = [ 'start' => \microtime(true) ];
+  $parsedData = processProps($entries, $parsedData, $epilogue, $meta);
+  $time['processProps']['end'] = \microtime(true);
 
   $time['doLogParse'] = [ 'start' => \microtime(true) ];
   if ($doLogParse)

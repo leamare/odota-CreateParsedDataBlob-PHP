@@ -55,6 +55,57 @@ function bytes_to_string(array $bytes): string {
   return $out;
 }
 
+function get_tower_statuses(array $objectives): array {
+  $statuses = [
+    "barracks_status_dire" => "0000000000000000",
+    "barracks_status_radiant" => "0000000000000000",
+    "tower_status_dire" => "00000000",
+    "tower_status_radiant" => "00000000",
+  ];
+
+  foreach ($objectives as $obj) {
+    if ($obj['type'] !== 'building_kill') continue;
+
+    $isRadiant = strpos($obj['key'], 'goodguys') !== false;
+
+    if (strpos($obj['key'], 'tower4')) {
+      if (isset($statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 5 ]))
+        $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 5 ] = '1';
+      else
+        $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 6 ] = '1';
+    } else if (strpos($obj['key'], 'tower')) {
+      $params = explode(
+        ",",
+        preg_replace("/npc_dota_(goodguys|badguys)_tower(\d*)_(.*)/", "\\2,\\3", $obj['key'])
+      );
+      $lane = $params[1] === 'top' ? 0 : (
+        $params[1] === 'mid' ? 1 : 2
+      );
+      $id = 3 * $lane + $params[0];
+      $statuses["tower_status_".($isRadiant ? "radiant" : "dire")][ 16 - $id ] = '1';
+    } else if (strpos($obj['key'], 'rax')) {
+      $params = explode(
+        ",",
+        preg_replace("/npc_dota_(goodguys|badguys)_(.*)_rax_(.*)/", "\\2,\\3", $obj['key'])
+      );
+      $lane = $params[1] === 'top' ? 0 : (
+        $params[1] === 'mid' ? 1 : 2
+      );
+      $isMelee = $params[0] === 'melee' ? 0 : 1;
+      
+      $id = 2 * $lane + $isMelee;
+      $statuses["barracks_status_".($isRadiant ? "radiant" : "dire")][ 8 - $id ] = '1';
+    }
+  }
+
+  return [
+    "barracks_status_dire" => base_convert($statuses['barracks_status_dire'], 2, 10),
+    "barracks_status_radiant" => base_convert($statuses['barracks_status_radiant'], 2, 10),
+    "tower_status_dire" => base_convert($statuses['tower_status_dire'], 2, 10),
+    "tower_status_radiant" => base_convert($statuses['tower_status_radiant'], 2, 10),
+  ];
+}
+
 }
 
 ?>

@@ -44,53 +44,77 @@ function getAnonymousAccountId() {
  * */
 function getLaneFromPosData($lanePos, $isRadiant) {
   // compute lanes
-  /*
   $lanes = [];
   // iterate over the position hash and get the lane bucket for each data point
-  Object.keys(lanePos).forEach((x) => {
-    Object.keys(lanePos[x]).forEach((y) => {
-      const val = lanePos[x][y];
-      const adjX = Number(x) - 64;
-      const adjY = 128 - (Number(y) - 64);
+  foreach ($lanePos as $x => $xv) {
+    foreach($xv as $y => $val) {
+      $adjX = (int)$x - 64;
+      $adjY = 128 - ((int)$y - 64);
       // Add it N times to the array
-      for (let i = 0; i < val; i += 1) {
-        if (laneMappings[adjY] && laneMappings[adjY][adjX]) {
-          lanes.push(laneMappings[adjY][adjX]);
+      for ($i = 0; $i < $val; $i++) {
+        if (isset($GLOBALS['metadata']['laneMappings'][$adjY]) && isset($GLOBALS['metadata']['laneMappings'][$adjY][$adjX])) {
+          $lanes[] = $GLOBALS['metadata']['laneMappings'][$adjY][$adjX];
         }
       }
-    });
-  });
-  const { mode: lane, count } = modeWithCount(lanes);
+    }
+  }
+  
+  [ $lane, $count ] = modeWithCount($lanes);
   /**
   * Player presence on lane. Calculated by the count of the prominant
   * lane (`count` of mode) divided by the presence on all lanes (`lanes.length`).
   * Having low presence (<45%) probably means the player is roaming.
-  * *//*
-  const isRoaming = (count / lanes.length) < 0.45;
+  * */
+  $isRoaming = ($count / sizeof($lanes)) < 0.45;
 
   // Roles, currently doesn't distinguish between carry/support in safelane
   // 1 safelane
   // 2 mid
   // 3 offlane
   // 4 jungle
-  const laneRoles = {
+  $laneRoles = [
     // bot
-    1: isRadiant ? 1 : 3,
+    1 => $isRadiant ? 1 : 3,
     // mid
-    2: 2,
+    2 => 2,
     // top
-    3: isRadiant ? 3 : 1,
+    3 => $isRadiant ? 3 : 1,
     // radiant jungle
-    4: 4,
+    4 => 4,
     // dire jungle
-    5: 4,
-  };
-  return {
-    lane,
-    lane_role: laneRoles[lane],
-    is_roaming: isRoaming,
-  };
-  */
+    5 => 4,
+  ];
+  
+  return [
+    'lane' => $lane,
+    'lane_role' => $laneRoles[$lane],
+    'is_roaming' => $isRoaming,
+  ];
+}
+
+/**
+ * Finds the mode and its occurrence count in the input array
+ * */
+function modeWithCount($array) {
+  if (!sizeof($array)) {
+    return [];
+  }
+  $modeMap = [];
+  $maxEl = $array[0];
+  $maxCount = 1;
+  foreach($array as $i => $el) {
+    if (empty($modeMap[$el])) $modeMap[$el] = 1;
+    else $modeMap[$el] += 1;
+    if ($modeMap[$el] > $maxCount) {
+      $maxEl = $el;
+      $maxCount = $modeMap[$el];
+    }
+  }
+  return [ 'mode' => $maxEl, 'count' => $maxCount ];
+}
+
+function mode($array) {
+  return modeWithCount($array)['mode'];
 }
 
 }

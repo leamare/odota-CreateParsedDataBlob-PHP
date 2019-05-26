@@ -92,7 +92,7 @@ namespace CreateParsedDataBlob {
       $team = utils\get_team_data($container['radiant_team_id']);
       $container['radiant_team'] = [
         'team_id' => $container['radiant_team_id'],
-        'name' => $team['name'],
+        'name' => $team['name'] ?? utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']) ?? null,
         'tag' => utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']),
       ];
     } else $container['radiant_team_id'] = null;
@@ -110,7 +110,7 @@ namespace CreateParsedDataBlob {
       $team = utils\get_team_data($container['dire_team_id']);
       $container['dire_team'] = [
         'team_id' => $container['dire_team_id'],
-        'name' => $team['name'],
+        'name' => $team['name'] ?? utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']) ?? null,
         'tag' => utils\bytes_to_string($epilogue_props['direTeamTag_']['bytes']),
       ];
     } else $container['dire_team_id'] = null;
@@ -156,7 +156,7 @@ namespace CreateParsedDataBlob {
       // we could request opendota for that info, but it's not optimal
     // $container['region'] = null; // regions are purely odota stuff, so we are skipping it
     // Same goes for patch number, but we are heavily relying on that, so we need it
-    $container['patch'] = $GLOBALS['metadata']['patch'];
+    $container['patch'] = utils\get_patch_id($container['start_time']);
 
     foreach ($entries as &$e) {
       switch ($e['type']) {

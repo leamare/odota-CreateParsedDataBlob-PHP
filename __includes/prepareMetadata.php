@@ -19,11 +19,13 @@ namespace CreateParsedDataBlob {
     $patches = \file_get_contents("https://api.stratz.com/api/v1/GameVersion");
     $patches = \json_decode($patches, true);
 
-    $patches = array_filter($patches, function($v) {
-      return strlen($v['name']) < 5;
-    });
-
-    $metadata['patch'] = sizeof($patches) - 2;
+    // Altho we are using Stratz API for patches list, we are using OpenDota format
+    // which is using new IDs only for major (non-letter) patches
+    $metadata['patches'] = \array_values(
+      \array_filter($patches, function($v) {
+        return strlen($v['name']) < 5;
+      })
+    );
 
     // FIXME
     $metadata['ancients'] = [

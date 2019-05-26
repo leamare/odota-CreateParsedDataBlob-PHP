@@ -116,6 +116,15 @@ function get_team_data($id) {
   )['result']['teams'][0];
 }
 
+function get_patch_id($start_time) {
+  foreach ($GLOBALS['metadata']['patches'] as $i => $patch) {
+    if (\strtotime($patch['startDate']) <= $start_time) {
+      $patch = $i;
+    }
+  }
+  return $patch - 1;
+}
+
 }
 
 ?>

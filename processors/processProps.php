@@ -90,10 +90,11 @@ namespace CreateParsedDataBlob {
     } else if (isset($epilogue_props['radiantTeamId_'])) {
       $container['radiant_team_id'] = $epilogue_props['radiantTeamId_'];
       $team = utils\get_team_data($container['radiant_team_id']);
+      $tag = isset($epilogue_props['radiantTeamTag_']['bytes']) ? utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']) : ( $team['tag'] ?? null);
       $container['radiant_team'] = [
         'team_id' => $container['radiant_team_id'],
-        'name' => $team['name'] ?? utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']) ?? null,
-        'tag' => utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']),
+        'name' => $team['name'] ?? $tag,
+        'tag' => $tag,
       ];
     } else $container['radiant_team_id'] = null;
 
@@ -108,10 +109,11 @@ namespace CreateParsedDataBlob {
       $container['dire_team_id'] = $epilogue_props['direTeamId_'];
 
       $team = utils\get_team_data($container['dire_team_id']);
+      $tag = isset($epilogue_props['direTeamTag_']['bytes']) ? utils\bytes_to_string($epilogue_props['direTeamTag_']['bytes']) : ( $team['tag'] ?? null);
       $container['dire_team'] = [
         'team_id' => $container['dire_team_id'],
-        'name' => $team['name'] ?? utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']) ?? null,
-        'tag' => utils\bytes_to_string($epilogue_props['direTeamTag_']['bytes']),
+        'name' => $team['name'] ?? $tag,
+        'tag' => $tag,
       ];
     } else $container['dire_team_id'] = null;
 
@@ -184,7 +186,7 @@ namespace CreateParsedDataBlob {
       $pl['isRadiant'] = \odota\core\utils\isRadiant($pl);
       $pl['account_id'] = $match_details['result']['players'][$slot]['account_id'] ?? 
         \odota\core\utils\convert64to32($epilogue_props['playerInfo_'][$slot]['steamid_']);
-      $pl['pings'] = $pl['pings'][0];
+      $pl['pings'] = $pl['pings'][0] ?? 0;
       $pl['personaname'] = utils\bytes_to_string($epilogue_props['playerInfo_'][$slot]['playerName_']['bytes']);
       $pl['name'] = null;
 

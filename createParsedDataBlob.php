@@ -2,6 +2,8 @@
 
 namespace CreateParsedDataBlob {
 
+ini_set('memory_limit', '4000M');
+
 include "__includes/__matchdataDummy.php";
 
 include "__includes/prepareMetadata.php";

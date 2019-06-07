@@ -87,7 +87,7 @@ namespace CreateParsedDataBlob {
         'name' => $match_details['result']['radiant_name'],
         'tag' => null,
       ];
-    } else if (isset($epilogue_props['radiantTeamId_'])) {
+    } else if ($epilogue_props['radiantTeamId_']) {
       $container['radiant_team_id'] = $epilogue_props['radiantTeamId_'];
       $team = utils\get_team_data($container['radiant_team_id']);
       $tag = isset($epilogue_props['radiantTeamTag_']['bytes']) ? utils\bytes_to_string($epilogue_props['radiantTeamTag_']['bytes']) : ( $team['tag'] ?? null);
@@ -105,7 +105,7 @@ namespace CreateParsedDataBlob {
         'name' => $match_details['result']['dire_name'],
         'tag' => null,
       ];
-    } else if (isset($epilogue_props['direTeamId_'])) {
+    } else if ($epilogue_props['direTeamId_']) {
       $container['dire_team_id'] = $epilogue_props['direTeamId_'];
 
       $team = utils\get_team_data($container['dire_team_id']);

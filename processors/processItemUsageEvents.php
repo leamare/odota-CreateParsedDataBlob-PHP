@@ -37,6 +37,7 @@ namespace CreateParsedDataBlob {
       },
       'DOTA_COMBATLOG_MODIFIER_ADD' => function($e) use (&$recentEvents, &$meta, &$positions) {
         if ($e['inflictor'] === 'modifier_smoke_of_deceit') {
+          if (strpos($e['targetname'], "npc_dota_hero_") === FALSE) return;
           $slot = $meta['hero_to_slot'][ $e['targetname'] ];
           $isRadiant = $slot < 5;
           foreach($recentEvents as &$event) {
@@ -53,6 +54,7 @@ namespace CreateParsedDataBlob {
       },
       'DOTA_COMBATLOG_MODIFIER_REMOVE' => function($e) use (&$recentEvents, &$meta, &$smokeEvents) {
         if ($e['inflictor'] === 'modifier_smoke_of_deceit') {
+          if (strpos($e['targetname'], "npc_dota_hero_") === FALSE) return;
           $slot = $meta['hero_to_slot'][ $e['targetname'] ];
           $isRadiant = $slot < 5;
           foreach($recentEvents as $id => $event) {

@@ -16,7 +16,7 @@ function isRadiant($player) {
  * Takes and returns a string
  */
 function convert64to32($id) {
-  $accountID = bcsub((string)$id, '76561197960265728');
+  $accountID = \bcsub((string)$id, '76561197960265728');
   //$w = bcdiv($accountID, 2)*2 + bcmod($accountID, '2');
   //return 'STEAM_0:'.bcmod($accountID, '2').':'.bcdiv($accountID, 2);
   return $accountID;
@@ -28,7 +28,7 @@ function convert64to32($id) {
  * Takes and returns a string
  */
 function convert32to64($id) {
-  $accountID = bcadd($id, '76561197960265728');
+  $accountID = \bcadd($id, '76561197960265728');
   return $accountID;
 }
 

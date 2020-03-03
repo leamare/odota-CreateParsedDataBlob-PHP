@@ -3,7 +3,7 @@
 namespace CreateParsedDataBlob
 {
 
-include_once __DIR__ . "/performanceOthers.php";
+//include_once __DIR__ . "/performanceOthers.php";
 include_once __DIR__ . "/../util/php_utility.php";
 
 function populate(&$e, &$container, &$meta) {

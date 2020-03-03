@@ -107,13 +107,16 @@ function get_tower_statuses(array $objectives): array {
 }
 
 function get_team_data($id) {
-  return \json_decode(
-    \file_get_contents(
+  $d = @\file_get_contents(
       "http://api.steampowered.com/IDOTA2Match_570/GetTeamInfoByTeamID/v1?key=".$GLOBALS['steamapikey'].
       "&start_at_team_id=".$id."&teams_requested=1"
-    ), 
+    );
+  $r = \json_decode(
+    $d, 
     true
-  )['result']['teams'][0];
+  );
+  if (!empty($r)) return $r['result']['teams'][0];
+  return [  ];
 }
 
 function get_patch_id($start_time) {

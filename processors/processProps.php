@@ -23,7 +23,7 @@ namespace CreateParsedDataBlob {
     $container['parser_type'] = "clarity-odota;CreateParsedDataBlobPHP";
     
     if (isset($GLOBALS['steamapikey'])) {
-      $match_details = file_get_contents("http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=".$GLOBALS['steamapikey']."&match_id=".$container['match_id']);
+      $match_details = @file_get_contents("http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=".$GLOBALS['steamapikey']."&match_id=".$container['match_id']);
       $match_details = \json_decode($match_details, true);
     }
 

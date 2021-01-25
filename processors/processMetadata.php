@@ -11,8 +11,9 @@ function processMetadata(&$entries) {
   $heroToSlot = [];
   $slotToPlayerslot = [];
   $heroIdToSlot = [];
+  $abilityLevels = [];
   $metaTypes = [
-    'interval' => function ($e) use (&$slotToPlayerslot, &$heroIdToSlot, &$heroToSlot) {
+    'interval' => function ($e) use (&$slotToPlayerslot, &$heroIdToSlot, &$heroToSlot, &$abilityLevels) {
       // check if hero has been assigned to entity
       if (!empty($e['hero_id'])) {
         // grab the end of the name, lowercase it
@@ -45,6 +46,7 @@ function processMetadata(&$entries) {
     'hero_to_slot' => $heroToSlot,
     'slot_to_playerslot' => $slotToPlayerslot,
     'hero_id_to_slot' => $heroIdToSlot,
+    'ability_levels' => $abilityLevels
   ];
 }
 

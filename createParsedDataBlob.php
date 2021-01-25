@@ -17,6 +17,8 @@ include "processors/processExpand.php";
 include "processors/processDraftTimings.php";
 include "processors/processProps.php";
 include "processors/processItemUsageEvents.php";
+//include "processors/processUploadProps.php";
+include "processors/processPerformanceOthers.php";
 
 function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false) {
   $time = [];

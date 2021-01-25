@@ -14,4 +14,3 @@ function processParsedData(&$entries, $container, &$meta) {
 
 }
 
-?>

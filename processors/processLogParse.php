@@ -25,31 +25,32 @@ function translate($s) {
 function processReduce(&$entries, &$meta) {
   $result = array_filter($entries, function($e) {
     if ($e['type'] === 'DOTA_COMBATLOG_PURCHASE'
-      || $e['type'] === 'DOTA_COMBATLOG_BUYBACK'
-      || ($e['type'] === 'DOTA_COMBATLOG_DEATH' && \utils\array_every($insignificantDeaths, function($prefix) { return strpos($e['targetname'], $prefix) !== 0; } ) )
-      || ($e['type'] === 'DOTA_COMBATLOG_MODIFIER_ADD' && isset($significantModifiers[$e['inflictor']]) && $e['targethero'])
+      // || $e['type'] === 'DOTA_COMBATLOG_BUYBACK'
+      || ($e['type'] === 'DOTA_COMBATLOG_DEATH' && \utils\array_every($insignificantDeaths, function($prefix) { return strpos($e['targetname'], $prefix) !== 0; } ) ) 
+      // || ($e['type'] === 'DOTA_COMBATLOG_MODIFIER_ADD' && isset($significantModifiers[$e['inflictor']]) && $e['targethero'])
       // ($e['type'] === 'DOTA_COMBATLOG_DAMAGE' && $e['targethero']) ||
-      || ($e['type'] === 'DOTA_COMBATLOG_HEAL' && $e['targethero'])
-      || $e['type'] === 'CHAT_MESSAGE_AEGIS'
-      || $e['type'] === 'CHAT_MESSAGE_AEGIS_STOLEN'
-      || $e['type'] === 'CHAT_MESSAGE_DENIED_AEGIS'
-      || $e['type'] === 'CHAT_MESSAGE_ROSHAN_KILL'
-      || $e['type'] === 'CHAT_MESSAGE_BARRACKS_KILL'
-      || $e['type'] === 'CHAT_MESSAGE_TOWER_KILL'
-      || $e['type'] === 'CHAT_MESSAGE_SCAN_USED'
-      || $e['type'] === 'CHAT_MESSAGE_GLYPH_USED'
-      || $e['type'] === 'CHAT_MESSAGE_PAUSED'
-      || $e['type'] === 'CHAT_MESSAGE_UNPAUSED'
-      || $e['type'] === 'CHAT_MESSAGE_RUNE_PICKUP'
-      || $e['type'] === 'CHAT_MESSAGE_FIRSTBLOOD'
-      || $e['type'] === 'CHAT_MESSAGE_DISCONNECT_WAIT_FOR_RECONNECT'
-      || $e['type'] === 'CHAT_MESSAGE_RECONNECT'
-      || $e['type'] === 'obs'
-      || $e['type'] === 'sen'
-      || $e['type'] === 'obs_left'
-      || $e['type'] === 'sen_left'
-      || $e['type'] === 'chat') {
-      return (bool)$e['time'];
+      // || ($e['type'] === 'DOTA_COMBATLOG_HEAL' && $e['targethero'])
+      // || $e['type'] === 'CHAT_MESSAGE_AEGIS'
+      // || $e['type'] === 'CHAT_MESSAGE_AEGIS_STOLEN'
+      // || $e['type'] === 'CHAT_MESSAGE_DENIED_AEGIS'
+      // || $e['type'] === 'CHAT_MESSAGE_ROSHAN_KILL'
+      // || $e['type'] === 'CHAT_MESSAGE_BARRACKS_KILL'
+      // || $e['type'] === 'CHAT_MESSAGE_TOWER_KILL'
+      // || $e['type'] === 'CHAT_MESSAGE_SCAN_USED'
+      // || $e['type'] === 'CHAT_MESSAGE_GLYPH_USED'
+      // || $e['type'] === 'CHAT_MESSAGE_PAUSED'
+      // || $e['type'] === 'CHAT_MESSAGE_UNPAUSED'
+      // || $e['type'] === 'CHAT_MESSAGE_RUNE_PICKUP'
+      // || $e['type'] === 'CHAT_MESSAGE_FIRSTBLOOD'
+      // || $e['type'] === 'CHAT_MESSAGE_DISCONNECT_WAIT_FOR_RECONNECT'
+      // || $e['type'] === 'CHAT_MESSAGE_RECONNECT'
+      // || $e['type'] === 'obs'
+      // || $e['type'] === 'sen'
+      // || $e['type'] === 'obs_left'
+      // || $e['type'] === 'sen_left'
+      // || $e['type'] === 'chat') {
+      ) {
+        return (bool)$e['time'];
     }
     return false;
   });

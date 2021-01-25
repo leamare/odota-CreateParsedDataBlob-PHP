@@ -22,6 +22,8 @@ function processDraftTimings(&$entries, &$meta) {
   $heroIdToSlot = $meta['hero_id_to_slot'];
   $sumActiveTeam = 0;
   $previousActiveTeam = 0;
+  $draftStart = 0;
+
   foreach ($entries as $i => &$e) {
     $heroId = $e['hero_id'] ?? null;
     if (isset($e['type']) && $e['type'] === 'draft_timings') {
@@ -41,6 +43,8 @@ function processDraftTimings(&$entries, &$meta) {
       ];
       $draftTimings[] = $currpickban;
       $previousActiveTeam = $e['draft_active_team'];
+    } else if ($e['type'] === 'draft_start') {
+      $draftStart = $e['time'];
     }
   }
   // ignore Source 1 games
@@ -49,7 +53,7 @@ function processDraftTimings(&$entries, &$meta) {
     $draftTimings[0]['active_team'] = (($sumActiveTeam % 2) + 2);
     foreach ($draftTimings as &$dt) {
       if ($dt['order'] === 1) {
-        $dt['total_time_taken'] = ($dt['time']);
+        $dt['total_time_taken'] = ($dt['time'] - $draftStart);
       } else {
         $index2;
         // find the time of the end of the previous order

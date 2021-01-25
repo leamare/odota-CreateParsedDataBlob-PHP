@@ -29,6 +29,12 @@ function populate(&$e, &$container, &$meta) {
     case 'building_kill':
       $container['objectives'][] = $e;
       break;
+    case 'ability_levels':
+      $meta['ability_levels'][ $e['unit'] ] = \array_replace([
+        $e['key'] => $e['level'],
+      ], $meta['ability_levels'][ $e['unit'] ]);
+      $meta['ability_levels'][ $e['unit'] ][ $e['key'] ] = $e['level'];
+      break;
     default:
       if (!isset($container['players'][$e['slot']])) {
       // couldn't associate with a player, probably attributed to a creep/tower/necro unit
@@ -73,6 +79,16 @@ function populate(&$e, &$container, &$meta) {
             'time' => $e['time'],
             'key' => $e['key'],
           ];
+
+          $maxCharges = $e['key'] === 'tango' ? 3 : 1;
+          if ($e['type'] === 'purchase_log' && $e['charges'] > $maxCharges) {
+            $arrEntry = [
+              'time' => $e['time'],
+              'key' => $e['key'],
+              'charges' => $e['charges']
+            ];
+          }
+
           if ($e['type'] === 'kills_log' && isset($e['tracked_death'])) {
             $arrEntry = \array_replace([
               'tracked_death' => $e['tracked_death'],
@@ -106,6 +122,12 @@ function populate(&$e, &$container, &$meta) {
           $t[$ability][$target] = 0;
         }
         $t[$ability][$target] += $damage;
+      // } else if ($e['type'] === 'ability_levels') {
+      //   // $container['players'][ $e['slot'] ][ $e['type'] ][ $e['key'] ] = $e['level'];
+      //   $meta['ability_levels'][ $e['unit'] ] = \array_replace([
+      //     $e['key'] => $e['level'],
+      //   ], $meta['ability_levels'][ $e['unit'] ]);
+      //   $meta['ability_levels'][ $e['unit'] ][ $e['key'] ] = $e['level'];
       } else if (is_array($t) && utils\is_assoc_array_by_index($e['type'])) {
       // add it to hash of counts
         $e['value'] = $e['value'] ?? 1;
@@ -115,7 +137,7 @@ function populate(&$e, &$container, &$meta) {
           $t[$e['key']] = $e['value'];
         }
 
-        // performanceOthers(e, container, meta);
+        performanceOthers($e, $container, $meta);
       } else if (is_string($t)) {
       // string, used for steam id
         $container['players'][$e['slot']][$e['type']] = $e['key'];

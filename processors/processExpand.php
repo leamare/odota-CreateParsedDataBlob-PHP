@@ -224,6 +224,15 @@ function processExpand(&$entries, &$meta) {
         ]);
       }
     },
+    'DOTA_ABILITY_LEVEL' => function($e) use ($expand, &$meta) {
+      $expand([
+        'time' => $e['time'],
+        'unit' => $e['targetname'],
+        'level' => $e['abilitylevel'],
+        'key'  => translate($e['valuename']),
+        'type' => 'ability_levels',
+      ]);
+    },
     'DOTA_COMBATLOG_ITEM' => function($e) use ($expand, &$meta) {
       // item use
       $expand([
@@ -268,6 +277,7 @@ function processExpand(&$entries, &$meta) {
         'value' => 1,
         'unit' => $unit,
         'key' => $key,
+        'charges' => $e['charges'],
         'type' => 'purchase',
       ]);
       // don't include recipes in purchase logs
@@ -277,6 +287,7 @@ function processExpand(&$entries, &$meta) {
           'value' => 1,
           'unit' => $unit,
           'key' => $key,
+          'charges' => $e['charges'],
           'type' => 'purchase_log',
         ]);
       }

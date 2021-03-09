@@ -32,7 +32,7 @@ function populate(&$e, &$container, &$meta) {
     case 'ability_levels':
       $meta['ability_levels'][ $e['unit'] ] = \array_replace([
         $e['key'] => $e['level'],
-      ], $meta['ability_levels'][ $e['unit'] ]);
+      ], $meta['ability_levels'][ $e['unit'] ] ?? []);
       $meta['ability_levels'][ $e['unit'] ][ $e['key'] ] = $e['level'];
       break;
     default:

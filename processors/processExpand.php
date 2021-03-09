@@ -277,7 +277,7 @@ function processExpand(&$entries, &$meta) {
         'value' => 1,
         'unit' => $unit,
         'key' => $key,
-        'charges' => $e['charges'],
+        'charges' => $e['charges'] ?? 0,
         'type' => 'purchase',
       ]);
       // don't include recipes in purchase logs
@@ -287,7 +287,7 @@ function processExpand(&$entries, &$meta) {
           'value' => 1,
           'unit' => $unit,
           'key' => $key,
-          'charges' => $e['charges'],
+          'charges' => $e['charges'] ?? 0,
           'type' => 'purchase_log',
         ]);
       }

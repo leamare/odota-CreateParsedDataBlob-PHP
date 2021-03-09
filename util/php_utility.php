@@ -99,10 +99,10 @@ function get_tower_statuses(array $objectives): array {
   }
 
   return [
-    "barracks_status_dire" => base_convert($statuses['barracks_status_dire'], 2, 10),
-    "barracks_status_radiant" => base_convert($statuses['barracks_status_radiant'], 2, 10),
-    "tower_status_dire" => base_convert($statuses['tower_status_dire'], 2, 10),
-    "tower_status_radiant" => base_convert($statuses['tower_status_radiant'], 2, 10),
+    "barracks_status_dire" => @base_convert($statuses['barracks_status_dire'], 2, 10),
+    "barracks_status_radiant" => @base_convert($statuses['barracks_status_radiant'], 2, 10),
+    "tower_status_dire" => @base_convert($statuses['tower_status_dire'], 2, 10),
+    "tower_status_radiant" => @base_convert($statuses['tower_status_radiant'], 2, 10),
   ];
 }
 
@@ -130,4 +130,4 @@ function get_patch_id($start_time) {
 
 }
 
-?>
+

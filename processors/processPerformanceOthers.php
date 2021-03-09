@@ -2,14 +2,6 @@
 
 namespace CreateParsedDataBlob {
 
-function processParsedData(&$entries, $container, &$meta) {
-  foreach ($entries as &$e) {
-    populate($e, $container, $meta);
-  }
-
-  return $container;
-}
-
 function greevilsGreed(&$e, &$container, $meta) {
   if ($e['type'] === 'killed' && isset($e['greevils_greed_stack'])) {
     $alchName = 'npc_dota_hero_alchemist';
@@ -38,7 +30,7 @@ function greevilsGreed(&$e, &$container, $meta) {
 }
 
 function track(&$e, &$container, $meta) {
-  if ($e['tracked_death'] && $e['type'] === "killed") {
+  if (($e['tracked_death'] ?? false) && $e['type'] === "killed") {
     $bhName = 'npc_dota_hero_bountyhunter';
     $trackerSlot = $meta['hero_to_slot'][$e['tracked_sourcename']];
     $trackerPlayer = $container['players'][$trackerSlot];
@@ -62,7 +54,7 @@ function track(&$e, &$container, $meta) {
     $trackerPlayer['performance_others'] = \array_replace([
       'tracked_deaths' => 0,
       'track_gold' => 0,
-    ], $trackerPlayer['performance_others']);
+    ], $trackerPlayer['performance_others'] ?? []);
 
     $trackerPlayer['performance_others']['tracked_deaths'] += 1;
     $trackerPlayer['performance_others']['track_gold'] += $gold;

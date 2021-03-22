@@ -121,11 +121,15 @@ function get_team_data($id) {
 
 function get_patch_id($start_time) {
   foreach ($GLOBALS['metadata']['patches'] as $i => $patch) {
-    if (\strtotime($patch['startDate']) <= $start_time) {
-      $patch = $i;
+    $p = $i;
+    if (\strtotime($patch['startDate']) >= $start_time) {
+      break;
     }
   }
-  return $patch - 1;
+
+  //$d = $stratz_pid - $stratz_patches[$p-1]['id'];
+
+  return ($p - 3);
 }
 
 }

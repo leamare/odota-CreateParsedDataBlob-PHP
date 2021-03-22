@@ -21,11 +21,14 @@ namespace CreateParsedDataBlob {
 
     // Altho we are using Stratz API for patches list, we are using OpenDota format
     // which is using new IDs only for major (non-letter) patches
-    $metadata['patches'] = \array_values(
+    $patches = \array_values(
       \array_filter($patches, function($v) {
-        return strlen($v['name']) < 5;
+        return (strlen($v['name']) < 5) || ($v['id'] < 137 && $v['name'][ 4 ] == 'a');
       })
     );
+    usort($patches, function($a, $b) { return $a['id'] <=> $b['id']; });
+
+    $metadata['patches'] = $patches;
 
     // FIXME
     $metadata['ancients'] = [

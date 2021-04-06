@@ -23,7 +23,7 @@ function greevilsGreed(&$e, &$container, $meta) {
 
     $alchPlayer['performance_others'] = \array_replace([
       'greevils_greed_gold' => 0,
-    ], $alchPlayer['performance_others']);
+    ], $alchPlayer['performance_others'] ?? []);
 
     $alchPlayer['performance_others']['greevils_greed_gold'] += $goldBase + $goldStack;
   }

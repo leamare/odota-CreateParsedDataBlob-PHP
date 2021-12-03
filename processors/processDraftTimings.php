@@ -21,20 +21,36 @@ function processDraftTimings(&$entries, &$meta) {
   $draftTimings = [];
   $heroIdToSlot = $meta['hero_id_to_slot'];
   $sumActiveTeam = 0;
-  $previousActiveTeam = 0;
   $draftStart = 0;
+
+  // to override incorrect draft orders from odota parser
+  // 0 is first pick/ban team, 1 is second
+  // TODO: load it to out of main code to metadata
+  $order_mask = [
+    0, 1, 0, 1, // bans 1
+    0, 1, 1, 0, // picks 1
+    0, 1, 0, 1, 0, 1, // bans 2
+    1, 0, 0, 1, // picks 2
+    0, 1, 0, 1, // bans 3
+    0, 1, // picks 3
+  ];
+
+  $order_team = [];
 
   foreach ($entries as $i => &$e) {
     $heroId = $e['hero_id'] ?? null;
     if (isset($e['type']) && $e['type'] === 'draft_timings') {
-      // The active team needs to be downshifted by 1, so ignore the final observation.
-      if ($i < (sizeof($entries) - 1)) {
-        $sumActiveTeam += $e['draft_active_team'];
+      if (empty($order_team) && $e['draft_order'] == 1) {
+        $order_team[ 0 ] = $e['draft_active_team'];
+        $order_team[ 1 ] = $e['draft_active_team'] == 3 ? 2 : 3;
+      } else {
+        $e['draft_active_team'] = $order_team[ $order_mask[ $e['draft_order']-1 ] ];
       }
+  
       $currpickban = [
         'order' => $e['draft_order'],
         'pick' => $e['pick'],
-        'active_team' => $previousActiveTeam,
+        'active_team' => $e['draft_active_team'],
         'hero_id' => $e['hero_id'],
         'player_slot' => $e['pick'] === true ? $heroIdToSlot[$heroId] : null,
         'time' => $e['time'],
@@ -42,15 +58,12 @@ function processDraftTimings(&$entries, &$meta) {
         'total_time_taken' => 0,
       ];
       $draftTimings[] = $currpickban;
-      $previousActiveTeam = $e['draft_active_team'];
     } else if ($e['type'] === 'draft_start') {
       $draftStart = $e['time'];
     }
   }
   // ignore Source 1 games
   if (sizeof($draftTimings) !== 0) {
-    // update the team that had the first pick/ban
-    $draftTimings[0]['active_team'] = (($sumActiveTeam % 2) + 2);
     foreach ($draftTimings as &$dt) {
       if ($dt['order'] === 1) {
         $dt['total_time_taken'] = ($dt['time'] - $draftStart);
@@ -71,8 +84,8 @@ function processDraftTimings(&$entries, &$meta) {
   foreach ($draftTimings as &$dt) {
     unset($dt['time']);
   }
+
   return $draftTimings;
 }
 
 }
-?>

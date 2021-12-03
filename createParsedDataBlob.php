@@ -100,4 +100,3 @@ function parseStream($stream, $doLogParse = true, $verbose = false) {
 
 }
 
-?>

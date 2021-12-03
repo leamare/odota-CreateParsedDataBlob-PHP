@@ -16,7 +16,13 @@ namespace CreateParsedDataBlob {
   function prepareMetadata() {
     $metadata = [];
 
-    $patches = \file_get_contents("https://api.stratz.com/api/v1/GameVersion");
+    if (\file_exists(__DIR__ ."/../stratzkey")) {
+      $stratzkey = \trim(\file_get_contents(__DIR__ ."/../stratzkey"));
+    }
+
+    $patches = \file_get_contents("https://api.stratz.com/api/v1/GameVersion".
+      (!empty($stratzkey) ? "?key=".$stratzkey : "" )
+    );
     $patches = \json_decode($patches, true);
 
     // Altho we are using Stratz API for patches list, we are using OpenDota format

@@ -30,8 +30,8 @@ namespace CreateParsedDataBlob {
             'affected' => 0,
             'affected_players_slots' => [],
           ];
-          $event['x_cell'] = $positions[ $event['slot'] ]['x'];
-          $event['y_cell'] = $positions[ $event['slot'] ]['y'];
+          $event['x_cell'] = ($positions[ $event['slot'] ] ?? [])['x'] ?? 0;
+          $event['y_cell'] = ($positions[ $event['slot'] ] ?? [])['y'] ?? 0;
           $recentEvents[] =& $event;
         }
       },
@@ -42,8 +42,8 @@ namespace CreateParsedDataBlob {
           $isRadiant = $slot < 5;
           foreach($recentEvents as &$event) {
             if ($isRadiant == ($event['slot'] < 5)) {
-              $delta_x = abs( $positions[$slot]['x'] - $event['x_cell'] );
-              $delta_y = abs( $positions[$slot]['y'] - $event['y_cell'] );
+              $delta_x = abs( (($positions[$slot] ?? [])['x'] ?? 0) - $event['x_cell'] );
+              $delta_y = abs( (($positions[$slot] ?? [])['y'] ?? 0) - $event['y_cell'] );
               if ($delta_x <= 10 && $delta_y <= 10) {
                 $event['affected']++;
                 $event['affected_players_slots'][] = $slot;

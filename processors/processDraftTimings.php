@@ -48,9 +48,9 @@ function processDraftTimings(&$entries, &$meta) {
       }
   
       $currpickban = [
-        'order' => $e['draft_order'],
+        'order' => $e['draft_order']-1,
         'pick' => $e['pick'],
-        'active_team' => $e['draft_active_team'],
+        'active_team' => $e['draft_active_team'] == 3 ? 2 : 3,
         'hero_id' => $e['hero_id'],
         'player_slot' => $e['pick'] === true ? $heroIdToSlot[$heroId] : null,
         'time' => $e['time'],
@@ -71,7 +71,7 @@ function processDraftTimings(&$entries, &$meta) {
         $index2;
         // find the time of the end of the previous order
         foreach ($draftTimings as $i => &$currpick) {
-          if ($currpick['order'] === ($dt['order'] - 1)) {
+          if ($currpick['order'] === ($dt['order'])) {
             $index2 = $i;
           }
         }

@@ -78,7 +78,7 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false
 
 function parseStream($stream, $doLogParse = true, $verbose = false) {
   if (!isset($GLOBALS['metadata'])) $GLOBALS['metadata'] = prepareMetadata();
-  if (!isset($GLOBALS['steamapikey'])) $GLOBALS['steamapikey'] = file_get_contents("steamapikey");
+  if (!isset($GLOBALS['steamapikey'])) $GLOBALS['steamapikey'] = file_get_contents(__DIR__ . "/steamapikey");
 
   $entries = [];
 

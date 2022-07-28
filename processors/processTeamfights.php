@@ -83,7 +83,7 @@ function processTeamfights(&$entries, &$meta) {
             'time' => $e['time'],
             'slot' => $heroToSlot[$e['key']],
           ];
-          if ($intervalState[$r['time']] && $intervalState[$r['time']][$r['slot']]) {
+          if (($intervalState[$r['time']] ?? false) && ($intervalState[$r['time']][$r['slot']] ?? false)) {
             // if a hero dies
             // add to deaths_pos
             // lookup slot of the killed hero by hero name (e.key)

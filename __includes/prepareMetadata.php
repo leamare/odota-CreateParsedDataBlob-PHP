@@ -20,9 +20,18 @@ namespace CreateParsedDataBlob {
       $stratzkey = \trim(\file_get_contents(__DIR__ ."/../stratzkey"));
     }
 
-    $patches = \file_get_contents("https://api.stratz.com/api/v1/GameVersion".
-      (!empty($stratzkey) ? "?key=".$stratzkey : "" )
-    );
+    if (file_exists(__DIR__."/../.stratz_gameversion.json")) {
+      $patches = \file_get_contents(__DIR__."/../.stratz_gameversion.json");
+    } else {
+      $patches = \file_get_contents("https://api.stratz.com/api/v1/GameVersion".
+        (!empty($stratzkey) ? $stratzkey : "" )
+      );
+
+      if (!empty($patches)) {
+        file_put_contents(__DIR__."/../.stratz_gameversion.json", $patches);
+      }
+    }
+    
     $patches = \json_decode($patches, true);
 
     // Altho we are using Stratz API for patches list, we are using OpenDota format
@@ -36,7 +45,7 @@ namespace CreateParsedDataBlob {
 
     $metadata['patches'] = $patches;
 
-    // FIXME
+    // FIXME: 
     $metadata['ancients'] = [
       "neutral_black_drake",
       "neutral_black_dragon",

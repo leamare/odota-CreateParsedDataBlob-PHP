@@ -52,8 +52,8 @@ function getLaneFromPosData($lanePos, $isRadiant) {
       $adjY = 128 - ((int)$y - 64);
       // Add it N times to the array
       for ($i = 0; $i < $val; $i++) {
-        if (isset($GLOBALS['metadata']['laneMappings'][$adjY]) && isset($GLOBALS['metadata']['laneMappings'][$adjY][$adjX])) {
-          $lanes[] = $GLOBALS['metadata']['laneMappings'][$adjY][$adjX];
+        if (isset($GLOBALS['cpdb_config']['metadata']['laneMappings'][$adjY]) && isset($GLOBALS['cpdb_config']['metadata']['laneMappings'][$adjY][$adjX])) {
+          $lanes[] = $GLOBALS['cpdb_config']['metadata']['laneMappings'][$adjY][$adjX];
         }
       }
     }

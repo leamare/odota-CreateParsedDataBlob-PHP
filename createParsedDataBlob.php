@@ -77,8 +77,13 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false
 }
 
 function parseStream($stream, $doLogParse = true, $verbose = false) {
-  if (!isset($GLOBALS['metadata'])) $GLOBALS['metadata'] = prepareMetadata();
-  if (!isset($GLOBALS['steamapikey'])) $GLOBALS['steamapikey'] = file_get_contents(__DIR__ . "/steamapikey");
+  $GLOBALS['cpdb_config'] = [];
+  if (!isset($GLOBALS['cpdb_config']['stratzkey'])) 
+    $GLOBALS['cpdb_config']['stratz'] = json_decode(@file_get_contents(__DIR__ . "/stratzkey.json"), true);
+  if (!isset($GLOBALS['cpdb_config']['metadata'])) 
+    $GLOBALS['cpdb_config']['metadata'] = prepareMetadata();
+  if (!isset($GLOBALS['cpdb_config']['steamapikey'])) 
+    $GLOBALS['cpdb_config']['steamapikey'] = @file_get_contents(__DIR__ . "/steamapikey");
 
   $entries = [];
 

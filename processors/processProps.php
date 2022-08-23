@@ -22,8 +22,9 @@ namespace CreateParsedDataBlob {
     $container['parse_time'] = time();
     $container['parser_type'] = "clarity-odota;CreateParsedDataBlobPHP";
     
-    if (isset($GLOBALS['steamapikey'])) {
-      $match_details = @file_get_contents("http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=".$GLOBALS['steamapikey']."&match_id=".$container['match_id']);
+    if (isset($GLOBALS['cpdb_config']['steamapikey'])) {
+      $match_details = @file_get_contents("http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=".
+        $GLOBALS['cpdb_config']['steamapikey']."&match_id=".$container['match_id']);
       $match_details = \json_decode($match_details, true);
     }
 
@@ -273,7 +274,7 @@ namespace CreateParsedDataBlob {
             $pl['hero_kills'] += $v;
         } else if (strpos($key, 'npc_dota_neutral') !== false)
           $pl['neutral_kills'] += $v;
-        else if (in_array($key, $GLOBALS['metadata']['ancients']))
+        else if (in_array($key, $GLOBALS['cpdb_config']['metadata']['ancients']))
           $pl['ancient_kills'] += $v;
         else if (strpos($key, '_tower') !== false)
           $pl['tower_kills'] += $v;

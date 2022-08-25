@@ -289,11 +289,10 @@ namespace CreateParsedDataBlob {
       if (isset($pl['gold_t']) && isset($pl['gold_t'][10])) {
         // lane efficiency: divide 10 minute gold by static amount based on standard creep spawn
         // var tenMinute = (43 * 60 + 48 * 20 + 74 * 2);
-        // 6.84 change
-        $melee = (40 * 60);
+        $melee = (40 * (60 + 8));
         $ranged = (45 * 20);
         $siege = (74 * 2);
-        $passive = (600 * 1.5);
+        $passive = (600 * 1.275);
         $starting = 625;
         $tenMinute = $melee + $ranged + $siege + $passive + $starting;
         $pl['lane_efficiency'] = $pl['gold_t'][10] / $tenMinute;

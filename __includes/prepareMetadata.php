@@ -2,9 +2,9 @@
 
 namespace CreateParsedDataBlob {
 
-  CONST _DOTA_Dust_Cost = 180;
-  CONST _DOTA_Obs_Ward_Cost = 50;
-  CONST _DOTA_Sentry_Ward_Cost = 75;
+  CONST _DOTA_Dust_Cost = 90;
+  CONST _DOTA_Obs_Ward_Cost = 0;
+  CONST _DOTA_Sentry_Ward_Cost = 100;
   CONST _DOTA_Salve_Cost = 110;
   CONST _DOTA_Mango_Cost = 70;
   CONST _DOTA_FaerieFire_Cost = 70;
@@ -56,7 +56,9 @@ namespace CreateParsedDataBlob {
       "neutral_rock_golem",
       "neutral_small_thunder_lizard",
       "neutral_jungle_stalker",
-      "neutral_big_thunder_lizard"
+      "neutral_big_thunder_lizard",
+      "neutral_ice_shaman",
+      "neutral_frostbitten_golem"
     ];
 
     /**

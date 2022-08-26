@@ -120,9 +120,10 @@ function get_team_data($id) {
 }
 
 function get_patch_id($start_time) {
-  foreach ($GLOBALS['metadata']['patches'] as $i => $patch) {
+  foreach ($GLOBALS['cpdb_config']['metadata']['patches'] as $i => $patch) {
     $p = $i;
-    if (\strtotime($patch['startDate']) >= $start_time) {
+    if (isset($patch['startDate'])) $patch['asOfDateTime'] = \strtotime($patch['startDate']);
+    if ($patch['asOfDateTime'] >= $start_time) {
       break;
     }
   }

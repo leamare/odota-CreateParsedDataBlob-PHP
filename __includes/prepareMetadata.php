@@ -16,23 +16,57 @@ namespace CreateParsedDataBlob {
   function prepareMetadata() {
     $metadata = [];
 
-    if (\file_exists(__DIR__ ."/../stratzkey")) {
-      $stratzkey = \trim(\file_get_contents(__DIR__ ."/../stratzkey"));
-    }
+    $stratzkey = $GLOBALS['cpdb_config']['stratz'];
 
     if (file_exists(__DIR__."/../.stratz_gameversion.json")) {
-      $patches = \file_get_contents(__DIR__."/../.stratz_gameversion.json");
+      $patches = json_decode(\file_get_contents(__DIR__."/../.stratz_gameversion.json"), true);
     } else {
-      $patches = \file_get_contents("https://api.stratz.com/api/v1/GameVersion".
-        (!empty($stratzkey) ? $stratzkey : "" )
+      $data = [
+        'query' => "{ constants {
+            gameVersions {
+              id
+              asOfDateTime
+              name
+            }
+          }
+        }"
+      ];
+    
+      $data['query'] = str_replace(["  ", "\r"], "", $data['query']);
+      $data['query'] = str_replace("\n", " ", $data['query']);
+
+      if (!empty($stratzkey['key'])) {
+        $data['key'] = $stratzkey['key'];
+      }
+
+      $q = json_encode($data);
+
+      $opts = [
+        "http" => [
+            "header" => 
+                (isset($stratzkey['token']) && !isset($stratzkey['key']) ? "Authorization: Bearer ".$stratzkey['token']."\r\n" : "")
+        ],
+        // "ssl" => [
+        //   "verify_peer" => false,
+        //   "verify_peer_name" => false,
+        // ]
+      ];
+
+      var_dump($opts);
+
+      $context = stream_context_create($opts);
+        
+      $patches = file_get_contents(
+        "https://api.stratz.com/graphql"."?".http_build_query($data),
+        false,
+        $context
       );
 
       if (!empty($patches)) {
-        file_put_contents(__DIR__."/../.stratz_gameversion.json", $patches);
+        $patches = json_decode($patches, true)['data']['constants']['gameVersions'];
+        file_put_contents(__DIR__."/../.stratz_gameversion.json", json_encode($patches));
       }
     }
-    
-    $patches = \json_decode($patches, true);
 
     // Altho we are using Stratz API for patches list, we are using OpenDota format
     // which is using new IDs only for major (non-letter) patches

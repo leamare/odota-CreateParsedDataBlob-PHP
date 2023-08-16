@@ -7,7 +7,7 @@ include __DIR__ . "/../__includes/from_camel_case.php";
 /**
  * Given an event stream, extracts metadata such as game zero time and hero to slot/ID mappings.
  * */
-function processMetadata(&$entries) {
+function processMetadata(&$entries, $epilogue) {
   $heroToSlot = [];
   $slotToPlayerslot = [];
   $heroIdToSlot = [];
@@ -46,9 +46,10 @@ function processMetadata(&$entries) {
     'hero_to_slot' => $heroToSlot,
     'slot_to_playerslot' => $slotToPlayerslot,
     'hero_id_to_slot' => $heroIdToSlot,
-    'ability_levels' => $abilityLevels
+    'ability_levels' => $abilityLevels,
+    'end_date' => $epilogue['gameInfo_']['dota_']['endTime_'],
+    'patch_id' => utils\get_patch_id($epilogue['gameInfo_']['dota_']['endTime_'])
   ];
 }
 
 }
-?>

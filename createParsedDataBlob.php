@@ -29,7 +29,7 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false
 
   //if ($verbose) \file_put_contents("php://stderr", "[ ] metadata: ");
   $time['metadata'] = [ 'start' => \microtime(true) ];
-  $meta = processMetadata($entries);
+  $meta = processMetadata($entries, $epilogue);
   $meta['match_id'] = $matchid;
   $time['metadata']['end'] = \microtime(true);
   //if ($verbose) \file_put_contents("php://stderr", $time['metadata']['end']-$time['metadata']['start']);

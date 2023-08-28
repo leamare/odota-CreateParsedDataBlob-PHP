@@ -80,7 +80,7 @@ function processDraftTimings(&$entries, &$meta) {
       if ($dt['order'] === 1) {
         $dt['total_time_taken'] = ($dt['time'] - $draftStart);
       } else {
-        $index2;
+        $index2 = 0;
         // find the time of the end of the previous order
         foreach ($draftTimings as $i => &$currpick) {
           if ($currpick['order'] === ($dt['order'])) {

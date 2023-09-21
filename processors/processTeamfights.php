@@ -78,6 +78,11 @@ function processTeamfights(&$entries, &$meta) {
       if (isset($e['time']) && $e['time'] >= $tf['start'] && $e['time'] <= $tf['end']) {
         if ($e['type'] === 'killed' && $e['targethero'] && !$e['targetillusion']) {
           populate($e, $tf, $meta);
+          // workaround for lone druid
+          if (strpos($e['key'], 'npc_dota_lone_druid_bear') !== false) {
+            $e['key'] = 'npc_dota_hero_lone_druid';
+          }
+
           // reverse the kill entry to find killed hero
           $r = [
             'time' => $e['time'],

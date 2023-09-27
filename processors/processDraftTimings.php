@@ -26,23 +26,32 @@ function processDraftTimings(&$entries, &$meta) {
   // to override incorrect draft orders from odota parser
   // 0 is first pick/ban team, 1 is second
   // TODO: load it to out of main code to metadata
-  if ($meta['patch_id'] < 53) {
+  if ($meta['game_mode'] == 2) {
+    if ($meta['patch_id'] < 53) {
+      $order_mask = [
+        0, 1, 0, 1, // bans 1
+        0, 1, 1, 0, // picks 1
+        0, 1, 0, 1, 0, 1, // bans 2
+        1, 0, 0, 1, // picks 2
+        0, 1, 0, 1, // bans 3
+        0, 1, // picks 3
+      ];
+    } else {
+      $order_mask = [
+        0, 1, 1, 0, 1, 1, 0, // bans 1
+        0, 1, // picks 1
+        0, 0, 1, // bans 2
+        1, 0, 0, 1, 1, 0, // picks 2
+        0, 1, 1, 0, // bans 3
+        0, 1, // picks 3
+      ];
+    }
+  } else if($meta['game_mode'] == 16) {
     $order_mask = [
-      0, 1, 0, 1, // bans 1
-      0, 1, 1, 0, // picks 1
-      0, 1, 0, 1, 0, 1, // bans 2
-      1, 0, 0, 1, // picks 2
-      0, 1, 0, 1, // bans 3
-      0, 1, // picks 3
-    ];
-  } else {
-    $order_mask = [
-      0, 1, 1, 0, 1, 1, 0, // bans 1
-      0, 1, // picks 1
-      0, 0, 1, // bans 2
-      1, 0, 0, 1, 1, 0, // picks 2
-      0, 1, 1, 0, // bans 3
-      0, 1, // picks 3
+      0, 1, 0, 1, 0, 1, //bans
+      0, 1, 1, 0,
+      0, 1, 1, 0, 
+      0, 1,
     ];
   }
   

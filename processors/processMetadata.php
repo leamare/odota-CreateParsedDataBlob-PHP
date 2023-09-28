@@ -48,7 +48,8 @@ function processMetadata(&$entries, $epilogue) {
     'hero_id_to_slot' => $heroIdToSlot,
     'ability_levels' => $abilityLevels,
     'end_date' => $epilogue['gameInfo_']['dota_']['endTime_'],
-    'patch_id' => utils\get_patch_id($epilogue['gameInfo_']['dota_']['endTime_'])
+    'patch_id' => utils\get_patch_id($epilogue['gameInfo_']['dota_']['endTime_']),
+    'game_mode' => $epilogue['gameInfo_']['dota_']['gameMode_'],
   ];
 }
 

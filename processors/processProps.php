@@ -194,9 +194,15 @@ namespace CreateParsedDataBlob {
       $pl['win'] = $pl['isRadiant'] == $container['radiant_win'] ? 1 : 0;
       $pl['lose'] = $pl['win'] ? 0 : 1;
 
-      $pl['kills'] = sizeof($pl['kills_log']);
-      $pl['assists'] = \round(($container[($pl['isRadiant'] ? 'radiant' : 'dire').'_score'] * $pl['teamfight_participation']) - $pl['kills']);
-      $pl['deaths'] = \array_sum($pl['killed_by']);
+      if (!isset($pl['kills'])) {
+        $pl['kills'] = sizeof($pl['kills_log']);
+      }
+      if (!isset($pl['assists'])) {
+        $pl['assists'] = \round(($container[($pl['isRadiant'] ? 'radiant' : 'dire').'_score'] * $pl['teamfight_participation']) - $pl['kills']);
+      }
+      if (!isset($pl['deaths'])) {
+        $pl['deaths'] = \array_sum($pl['killed_by']);
+      }
       $pl['kda'] = \floor(($pl['kills']+$pl['assists']) / ($pl['deaths']+1));
       $pl['buyback_count'] = sizeof($pl['buyback_log']);
       $pl['total_gold'] = end($pl['gold_t']);
@@ -310,7 +316,7 @@ namespace CreateParsedDataBlob {
       if ($pl['purchase_log']) {
         // remove ward dispenser and recipes
         $pl['purchase_log'] = \array_filter($pl['purchase_log'], function($purchase) {
-          !(strpos($purchase['key'], 'recipe_') === 0 || $purchase['key'] === 'ward_dispenser');
+          return !(strpos($purchase['key'], 'recipe_') === 0 || $purchase['key'] === 'ward_dispenser');
         });
         $pl['purchase_time'] = [];
         $pl['first_purchase_time'] = [];
@@ -328,7 +334,7 @@ namespace CreateParsedDataBlob {
           }
           $pl['purchase_time'][$k] += $time;
           $pl['item_usage'][$k] = 1;
-          $pl['item_win'][$k] = \odota\core\utils\isRadiant(pm) === $pl['radiant_win'] ? 1 : 0;
+          $pl['item_win'][$k] = \odota\core\utils\isRadiant($pl) === $pl['radiant_win'] ? 1 : 0;
         }
       }
 

@@ -106,7 +106,7 @@ function processTeamfights(&$entries, &$meta) {
           }
         } else if ($e['type'] === 'buyback_log') {
           // bought back
-          if ($tf['players'][$e['slot']]) {
+          if ($tf['players'][$e['slot']] ?? 0) {
             $tf['players'][$e['slot']]['buybacks'] += 1;
           }
         } else if ($e['type'] === 'damage') {

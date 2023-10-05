@@ -23,10 +23,12 @@ function translate($s) {
  * A processor to reduce the event stream to only logs we want to persist
  * */
 function processReduce(&$entries, &$meta) {
-  $result = array_filter($entries, function($e) {
+  global $insignificantDeaths;
+
+  $result = array_filter($entries, function($e) use ($insignificantDeaths) {
     if ($e['type'] === 'DOTA_COMBATLOG_PURCHASE'
       // || $e['type'] === 'DOTA_COMBATLOG_BUYBACK'
-      || ($e['type'] === 'DOTA_COMBATLOG_DEATH' && \utils\array_every($insignificantDeaths, function($prefix) { return strpos($e['targetname'], $prefix) !== 0; } ) ) 
+      || ($e['type'] === 'DOTA_COMBATLOG_DEATH' && \CreateParsedDataBlob\utils\array_every($insignificantDeaths, function($prefix) use ($e) { return strpos($e['targetname'], $prefix) !== 0; } ) ) 
       // || ($e['type'] === 'DOTA_COMBATLOG_MODIFIER_ADD' && isset($significantModifiers[$e['inflictor']]) && $e['targethero'])
       // ($e['type'] === 'DOTA_COMBATLOG_DAMAGE' && $e['targethero']) ||
       // || ($e['type'] === 'DOTA_COMBATLOG_HEAL' && $e['targethero'])
@@ -54,7 +56,7 @@ function processReduce(&$entries, &$meta) {
     }
     return false;
   });
-  $result = array_map(function($e) {
+  $result = array_map(function($e) use (&$meta) {
     $e2 = \array_replace($e, [
       'match_id' => $meta['match_id'],
       'attackername_slot' => $meta['slot_to_playerslot'][$meta['hero_to_slot'][$e['attackername']]],

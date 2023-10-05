@@ -527,8 +527,8 @@ function processExpand(&$entries, &$meta) {
         ];
 
         foreach ($types as $field) {
-          $key;
-          $value;
+          // $key;
+          // $value;
           if ($field === 'life_state') {
             $key = $e[$field] ?? null;
             $value = 1;
@@ -647,4 +647,3 @@ function processExpand(&$entries, &$meta) {
 }
 
 }
-?>

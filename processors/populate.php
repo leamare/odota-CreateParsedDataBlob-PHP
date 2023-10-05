@@ -71,7 +71,7 @@ function populate(&$e, &$container, &$meta) {
       } else if (is_array($t) && !utils\is_assoc_array_by_index($e['type'])) {
       // determine whether we want the value only (interval) or everything (log)
       // either way this creates a new value so e can be mutated later
-        $arrEntry;
+        // $arrEntry;
         if (isset($e['interval']) && $e['interval']) {
           $arrEntry = $e['value'];
         } else if ($e['type'] === 'purchase_log' || $e['type'] === 'kills_log' || $e['type'] === 'runes_log') {
@@ -145,10 +145,9 @@ function populate(&$e, &$container, &$meta) {
       // we must use the full reference since this is a primitive type
         $container['players'][$e['slot']][$e['type']] = $e['value'];
       }
-      unset($t);
+      // unset($t);
       break;
   }
 }
 
 }
-?>

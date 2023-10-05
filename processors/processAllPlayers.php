@@ -41,4 +41,3 @@ function processAllPlayers($entries, $meta) {
 }
 
 }
-?>

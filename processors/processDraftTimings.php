@@ -61,11 +61,13 @@ function processDraftTimings(&$entries, &$meta) {
   foreach ($entries as $i => &$e) {
     $heroId = $e['hero_id'] ?? null;
     if (isset($e['type']) && $e['type'] === 'draft_timings') {
-      if (empty($order_team) && $e['draft_order'] == 1) {
-        $order_team[ 0 ] = $e['draft_active_team'];
-        $order_team[ 1 ] = $e['draft_active_team'] == 3 ? 2 : 3;
-      } else {
-        $e['draft_active_team'] = $order_team[ $order_mask[ $e['draft_order']-1 ] ];
+      if (isset($order_mask)) {
+        if (empty($order_team) && $e['draft_order'] == 1) {
+          $order_team[ 0 ] = $e['draft_active_team'];
+          $order_team[ 1 ] = $e['draft_active_team'] == 3 ? 2 : 3;
+        } else {
+          $e['draft_active_team'] = $order_team[ $order_mask[ $e['draft_order']-1 ] ];
+        }
       }
   
       $currpickban = [
@@ -101,9 +103,24 @@ function processDraftTimings(&$entries, &$meta) {
       }
     }
   }
+
+  $teams = [
+    2 => null, 3 => null
+  ];
   // remove the time, no need for it
+  // also find out which team is which
   foreach ($draftTimings as &$dt) {
+    if (isset($dt['player_slot']) && !isset($teams[ $dt['active_team'] ])) {
+      $heroId = $dt['hero_id'] ?? null;
+      if (isset($heroId)) {
+        $teams[ $dt['active_team'] ] = $heroIdToSlot[$heroId] < 128;
+        $teams[ $dt['active_team'] == 3 ? 2 : 3 ] = !$teams[ $dt['active_team'] ];
+      }
+    }
     unset($dt['time']);
+  }
+  foreach ($draftTimings as &$dt) {
+    $dt['team'] = $teams[ $dt['active_team'] ];
   }
 
   return $draftTimings;

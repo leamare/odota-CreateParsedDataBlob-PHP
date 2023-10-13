@@ -8,12 +8,18 @@ function greevilsGreed(&$e, &$container, $meta) {
     $alchSlot = $meta['hero_to_slot'][$alchName];
     $alchPlayer = $container['players'][$alchSlot];
 
-    $ggLvl = $meta['ability_levels'][$alchName]['alchemist_goblins_greed'];
-
-    $goldBase = 3;
-    $goldStack = $e['greevils_greed_stack'] * 3;
+    if (isset($meta['ability_levels'][$alchName]['alchemist_goblins_greed'])) {
+      $ggLvl = $meta['ability_levels'][$alchName]['alchemist_goblins_greed'];
+      $goldBase = 3;
+      $goldStack = $e['greevils_greed_stack'] * 3;
+    } else {
+      $ggLvl = 0;
+      $goldBase = 2;
+      $goldStack = $e['greevils_greed_stack'] * 2;
+    }
 
     switch ($ggLvl) {
+      case 0: $goldStack = min($goldStack, 18); break;
       case 1: $goldStack = min($goldStack, 18); break;
       case 2: $goldStack = min($goldStack, 21); break;
       case 3: $goldStack = min($goldStack, 24); break;

@@ -98,7 +98,7 @@ function parseStream($stream, $doLogParse = true, $verbose = false) {
   }
   \fclose($stream);
   
-  $parsedData = createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose);
+  $parsedData = createParsedDataBlob($entries, $epilogue ?? [], $doLogParse, $verbose);
 
   return $parsedData;
 }

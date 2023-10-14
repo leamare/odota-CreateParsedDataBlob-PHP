@@ -8,7 +8,7 @@ include_once __DIR__ . "/populate.php";
  * A processor to compute teamfights that occurred given an event stream
  * */
 function processTeamfights(&$entries, &$meta) {
-  $currTeamfight;
+  // $currTeamfight;
   $teamfights = [];
   $intervalState = [];
   $teamfightCooldown = 15;

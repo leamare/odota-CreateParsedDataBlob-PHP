@@ -7,7 +7,7 @@ function processUploadProps(&$entries) {
     'player_map' => [],
   ];
   foreach ($entries as $e) {
-    $dota;
+    // $dota;
     switch ($e['type']) {
       case 'epilogue':
         $dota = json_decode($e['key'])['gameInfo_']['dota_'];

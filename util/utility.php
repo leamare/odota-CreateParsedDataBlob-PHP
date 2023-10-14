@@ -119,4 +119,3 @@ function mode($array) {
 
 }
 
-?>

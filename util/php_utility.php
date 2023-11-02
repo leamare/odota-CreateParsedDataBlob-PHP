@@ -48,6 +48,15 @@ function array_every(array $values, $func) {
   return true;
 }
 
+function str_check_multiple(string $haystack, array $needles) {
+  foreach ($needles as $value) {
+    if (strpos($haystack, $value) !== false) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function bytes_to_string(array $bytes): string {
   $out = "";
   foreach ($bytes as $b)

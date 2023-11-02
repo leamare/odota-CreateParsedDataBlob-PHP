@@ -190,6 +190,13 @@ namespace CreateParsedDataBlob {
       $pl['pings'] = $pl['pings'][0] ?? 0;
       $pl['personaname'] = utils\bytes_to_string($epilogue_props['playerInfo_'][$slot]['playerName_']['bytes']);
       $pl['name'] = null;
+      $pl['self_hero_tags'] = [];
+
+      foreach($meta['hero_to_slot'] as $key => $hslot) {
+        if ($hslot == $slot) {
+          $pl['self_hero_tags'][] = $key;
+        }
+      }
 
       $pl['win'] = $pl['isRadiant'] == $container['radiant_win'] ? 1 : 0;
       $pl['lose'] = $pl['win'] ? 0 : 1;
@@ -222,7 +229,7 @@ namespace CreateParsedDataBlob {
 
       $pl['hero_healing'] = 0;
       foreach ($pl['healing'] as $k => $heal) {
-        if (strpos($k, "npc_dota_hero") === false)
+        if (strpos($k, "npc_dota_hero") !== false && strpos($k, "illusion_") === false && !utils\str_check_multiple($k, $pl['self_hero_tags']))
           $pl['hero_healing'] += $heal;
       }
       

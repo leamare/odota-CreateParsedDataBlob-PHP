@@ -20,6 +20,7 @@ namespace CreateParsedDataBlob {
 function processDraftTimings(&$entries, &$meta) {
   $draftTimings = [];
   $heroIdToSlot = $meta['hero_id_to_slot'];
+  $slotToPlayerSlot = $meta['slot_to_playerslot'];
   $sumActiveTeam = 0;
   $draftStart = 0;
 
@@ -49,12 +50,14 @@ function processDraftTimings(&$entries, &$meta) {
   } else if($meta['game_mode'] == 16) {
     $order_mask = [
       0, 1, 0, 1, 0, 1, //bans
+      // bans order has to be fixed later
+      // after the teams are assigned
+      // first three always go to radiant
       0, 1, 1, 0,
       0, 1, 1, 0, 
       0, 1,
     ];
   }
-  
 
   $order_team = [];
 
@@ -75,7 +78,7 @@ function processDraftTimings(&$entries, &$meta) {
         'pick' => $e['pick'],
         'active_team' => $e['draft_active_team'] == 3 ? 2 : 3,
         'hero_id' => $e['hero_id'],
-        'player_slot' => $e['pick'] === true ? $heroIdToSlot[$heroId] : null,
+        'player_slot' => $e['pick'] === true ? $slotToPlayerSlot[ $heroIdToSlot[$heroId] ] : null,
         'time' => $e['time'],
         'extra_time' => $e['draft_active_team'] === 2 ? $e['draft_extime0'] : $e['draft_extime1'],
         'total_time_taken' => 0,
@@ -113,11 +116,12 @@ function processDraftTimings(&$entries, &$meta) {
     if (isset($dt['player_slot']) && !isset($teams[ $dt['active_team'] ])) {
       $heroId = $dt['hero_id'] ?? null;
       if (isset($heroId)) {
-        $teams[ $dt['active_team'] ] = $heroIdToSlot[$heroId] < 128;
+        $teams[ $dt['active_team'] ] = $dt['player_slot'] < 128;
         $teams[ $dt['active_team'] == 3 ? 2 : 3 ] = !$teams[ $dt['active_team'] ];
+        break;
       }
     }
-    unset($dt['time']);
+    // unset($dt['time']);
   }
   foreach ($draftTimings as &$dt) {
     $dt['team'] = $teams[ $dt['active_team'] ];

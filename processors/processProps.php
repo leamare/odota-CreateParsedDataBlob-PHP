@@ -221,8 +221,10 @@ namespace CreateParsedDataBlob {
       $pl['hero_damage'] = 0;
       $pl['tower_damage'] = 0;
       foreach ($pl['damage'] as $k => $dmg) {
-        if (strpos($k, "npc_dota_hero") === 0)
+        if (strpos($k, "npc_dota_hero") !== false && strpos($k, "illusion_") === false && !utils\str_check_multiple($k, $pl['self_hero_tags']))
           $pl['hero_damage'] += $dmg;
+        // if (strpos($k, "npc_dota_hero") === 0)
+        //   $pl['hero_damage'] += $dmg;
         if (strpos($k, "tower") !== false || strpos($k, "fort") !== false || strpos($k, "rax") !== false)
           $pl['tower_damage'] += $dmg;
       }

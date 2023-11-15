@@ -123,9 +123,30 @@ function processDraftTimings(&$entries, &$meta) {
     }
     // unset($dt['time']);
   }
+  $fpRadiant = null;
+  $reprocessBans = 0;
   foreach ($draftTimings as &$dt) {
     $dt['team'] = $teams[ $dt['active_team'] ];
+    if (!isset($fpRadiant) && $dt['pick']) {
+      $fpRadiant = $dt['team'];
+    }
+    if (!$dt['pick'] && $dt['time'] == $draftStart) {
+      $reprocessBans++;
+    }
   }
+
+  if($meta['game_mode'] == 16) {
+    for ($i=0, $sz=floor($reprocessBans/2); $i<$sz; $i++) {
+      $draftTimings[$i]['team'] = true;
+      $draftTimings[$i]['order'] = $i*2 + !$fpRadiant;
+
+      $draftTimings[$i+$sz]['team'] = false;
+      $draftTimings[$i+$sz]['order'] = $i*2 + $fpRadiant;
+    }
+  }
+  usort($draftTimings, function($a, $b) {
+    return $a['order'] <=> $b['order'];
+  });
 
   return $draftTimings;
 }

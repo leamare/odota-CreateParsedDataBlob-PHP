@@ -162,6 +162,7 @@ namespace CreateParsedDataBlob {
     $container['patch'] = utils\get_patch_id($container['start_time']);
 
     foreach ($entries as &$e) {
+      if (empty($e)) continue;
       switch ($e['type']) {
         case 'interval':
           if (isset($e['hero_id'])) {

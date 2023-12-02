@@ -90,19 +90,19 @@ function processDraftTimings(&$entries, &$meta) {
   }
   // ignore Source 1 games
   if (sizeof($draftTimings) !== 0) {
-    foreach ($draftTimings as &$dt) {
+    foreach ($draftTimings as $i => $dt) {
       if ($dt['order'] === 1) {
-        $dt['total_time_taken'] = ($dt['time'] - $draftStart);
+        $draftTimings[$i]['total_time_taken'] = ($dt['time'] - $draftStart);
       } else {
         $index2 = 0;
         // find the time of the end of the previous order
-        foreach ($draftTimings as $i => &$currpick) {
+        foreach ($draftTimings as $i => $currpick) {
           if ($currpick['order'] === ($dt['order'])) {
             $index2 = $i;
           }
         }
         // calculate the timings
-        $dt['total_time_taken'] = ($dt['time'] - $draftTimings[$index2]['time']);
+        $draftTimings[$i]['total_time_taken'] = ($dt['time'] - $draftTimings[$index2]['time']);
       }
     }
   }

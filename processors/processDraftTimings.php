@@ -37,6 +37,14 @@ function processDraftTimings(&$entries, &$meta) {
         0, 1, 0, 1, // bans 3
         0, 1, // picks 3
       ];
+      $order_mask_ispick = [
+        0, 0, 0, 0, // bans 1
+        1, 1, 1, 1, // picks 1
+        0, 0, 0, 0, 0, 0, // bans 2
+        1, 1, 1, 1, // picks 2
+        0, 0, 0, 0, // bans 3
+        1, 1, // picks 3
+      ];
     } else {
       $order_mask = [
         0, 1, 1, 0, 1, 1, 0, // bans 1
@@ -45,6 +53,14 @@ function processDraftTimings(&$entries, &$meta) {
         1, 0, 0, 1, 1, 0, // picks 2
         0, 1, 1, 0, // bans 3
         0, 1, // picks 3
+      ];
+      $order_mask_ispick = [
+        0, 0, 0, 0, 0, 0, 0, // bans 1
+        1, 1, // picks 1
+        0, 0, 0, // bans 2
+        1, 1, 1, 1, 1, 1, // picks 2
+        0, 0, 0, 0, // bans 3
+        1, 1, // picks 3
       ];
     }
   } else if($meta['game_mode'] == 16) {
@@ -56,6 +72,12 @@ function processDraftTimings(&$entries, &$meta) {
       0, 1, 1, 0,
       0, 1, 1, 0, 
       0, 1,
+    ];
+    $order_mask_ispick = [
+      0, 0, 0, 0, 0, 0,
+      1, 1, 1, 1,
+      1, 1, 1, 1, 
+      1, 1,
     ];
   }
 
@@ -112,8 +134,8 @@ function processDraftTimings(&$entries, &$meta) {
   ];
   // remove the time, no need for it
   // also find out which team is which
-  foreach ($draftTimings as &$dt) {
-    if (isset($dt['player_slot']) && !isset($teams[ $dt['active_team'] ])) {
+  foreach ($draftTimings as $dt) {
+    if (isset($dt['player_slot']) && !isset($teams[ $dt['active_team'] ]) && $dt['time'] != $draftStart) {
       $heroId = $dt['hero_id'] ?? null;
       if (isset($heroId)) {
         $teams[ $dt['active_team'] ] = $dt['player_slot'] < 128;
@@ -124,24 +146,26 @@ function processDraftTimings(&$entries, &$meta) {
     // unset($dt['time']);
   }
   $fpRadiant = null;
-  $reprocessBans = 0;
-  foreach ($draftTimings as &$dt) {
-    $dt['team'] = $teams[ $dt['active_team'] ];
-    if (!isset($fpRadiant) && $dt['pick']) {
-      $fpRadiant = $dt['team'];
+  $reprocess = 0;
+  $repbans = 0; $sidebans = [0,0];
+  foreach ($draftTimings as $i => $dt) {
+    $draftTimings[$i]['team'] = !$teams[ $dt['active_team'] ];
+    if (!isset($fpRadiant) && $dt['pick'] && $dt['time'] != $draftStart) {
+      $fpRadiant = $draftTimings[$i]['team'] == $order_mask[$i];
     }
-    if (!$dt['pick'] && $dt['time'] == $draftStart) {
-      $reprocessBans++;
+    if ($dt['time'] == $draftStart) {
+      $reprocess++;
+      if (!$dt['pick']) {
+        $repbans++;
+        
+      }
     }
   }
+  for ($i=0; $i<$reprocess; $i++) {
+    if ($order_mask_ispick[$i]) continue;
+    $sidebans[ !($fpRadiant == !$order_mask[$i]) ]++;
+  }
 
-  if($meta['game_mode'] == 16) {
-    for ($i=0, $sz=floor($reprocessBans/2); $i<$sz; $i++) {
-      $draftTimings[$i]['team'] = true;
-      $draftTimings[$i]['order'] = $i*2 + !$fpRadiant;
-
-      $draftTimings[$i+$sz]['team'] = false;
-      $draftTimings[$i+$sz]['order'] = $i*2 + $fpRadiant;
     }
   }
   usort($draftTimings, function($a, $b) {

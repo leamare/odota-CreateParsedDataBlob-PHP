@@ -166,6 +166,80 @@ function processDraftTimings(&$entries, &$meta) {
     $sidebans[ !($fpRadiant == !$order_mask[$i]) ]++;
   }
 
+
+  if ($reprocess > 1) {
+    if($meta['game_mode'] == 16) {
+      $unprocessed = $order_mask;
+
+      for ($i=0; $i<$reprocess; $i++) {
+        if ($i < 6) {
+          $j = $i % floor($repbans/2);
+          $side = $sidebans[0] > 0 ? 1 : 0;
+          $sidebans[!$side]--;
+
+          $draftTimings[$i]['team'] = $side;
+          $draftTimings[$i]['order'] = $j*2 + (!$side ? !$fpRadiant : $fpRadiant);
+
+          unset($unprocessed[$draftTimings[$i]['order']]);
+        } else {
+          if (floor(($reprocess-6)/2) == 0) {
+            $j = ($i-6);
+          } else {
+            $j = ($i-6) % floor(($reprocess-6)/2);
+          }
+          // $side = floor($i / 3);
+
+          $side = $draftTimings[$i]['player_slot'] < 128;
+
+          // for($st=6+$j*2, $ed=6+$j*2+2; $st < $ed; $st++) {
+          foreach($unprocessed as $st => $dside) {
+            if (!isset($unprocessed[$st])) {
+              continue;
+            }
+
+            if (($fpRadiant && ($order_mask[$st] == !$side)) || 
+              (!$fpRadiant && ($order_mask[$st] == $side))
+            ) {
+              $draftTimings[$i]['team'] = $side;
+              $draftTimings[$i]['order'] = $st;
+              unset($unprocessed[$st]);
+              break;
+            }
+          }
+        }
+      }
+    }
+    if($meta['game_mode'] == 2) {
+      $unprocessed = $order_mask;
+
+      for ($i=0; $i<$reprocess; $i++) {
+        $j = ($i-$repbans) % floor($reprocess/2);
+        
+        if ($draftTimings[$i]['pick']) {
+          $side = $draftTimings[$i]['player_slot'] < 128;
+        } else {
+          $side = $sidebans[0] > 0 ? 1 : 0;
+          $sidebans[!$side]--;
+        }
+
+        foreach($unprocessed as $st => $dside) {
+          if (!isset($unprocessed[$st])) {
+            continue;
+          }
+
+          if (
+            (
+              ($fpRadiant && ($order_mask[$st] == !$side)) || 
+              (!$fpRadiant && ($order_mask[$st] == $side))
+            ) && $order_mask_ispick[$st] == $draftTimings[$i]['pick']
+          ) {
+            $draftTimings[$i]['team'] = !$side;
+            $draftTimings[$i]['order'] = $st;
+            unset($unprocessed[$st]);
+            break;
+          }
+        }
+      }
     }
   }
   usort($draftTimings, function($a, $b) {

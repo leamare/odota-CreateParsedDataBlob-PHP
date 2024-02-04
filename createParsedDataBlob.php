@@ -90,6 +90,7 @@ function parseStream($stream, $doLogParse = true, $verbose = false) {
   $stream = \fopen($stream, "r") or die("Unable to open stream");
   while(!\feof($stream)) {
     $e = \json_decode(\trim(\fgets($stream)), true);
+    if (!$e) continue;
     if ($e['type'] === 'epilogue') {
       $epilogue = \json_decode($e['key'], true, 512, JSON_BIGINT_AS_STRING);
       break;

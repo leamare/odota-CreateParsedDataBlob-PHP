@@ -187,7 +187,7 @@ namespace CreateParsedDataBlob {
     foreach ($container['players'] as $slot => &$pl) {
       $pl['isRadiant'] = \odota\core\utils\isRadiant($pl);
       $pl['account_id'] = $match_details['result']['players'][$slot]['account_id'] ?? 
-        \odota\core\utils\convert64to32($epilogue_props['playerInfo_'][$slot]['steamid_']);
+        (empty($epilogue_props['playerInfo_'][$slot]['steamid_']) ? null : \odota\core\utils\convert64to32($epilogue_props['playerInfo_'][$slot]['steamid_']));
       $pl['pings'] = $pl['pings'][0] ?? 0;
       $pl['personaname'] = utils\bytes_to_string($epilogue_props['playerInfo_'][$slot]['playerName_']['bytes'] ?? []);
       $pl['name'] = null;

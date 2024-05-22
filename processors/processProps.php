@@ -199,6 +199,8 @@ namespace CreateParsedDataBlob {
         }
       }
 
+      $pl['ability_level_times'] = $meta['ability_levels'][$slot];
+
       $pl['win'] = $pl['isRadiant'] == $container['radiant_win'] ? 1 : 0;
       $pl['lose'] = $pl['win'] ? 0 : 1;
 

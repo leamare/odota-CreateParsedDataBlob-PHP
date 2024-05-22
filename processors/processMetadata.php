@@ -13,7 +13,7 @@ function processMetadata(&$entries, $epilogue) {
   $heroIdToSlot = [];
   $abilityLevels = [];
   $metaTypes = [
-    'interval' => function ($e) use (&$slotToPlayerslot, &$heroIdToSlot, &$heroToSlot, &$abilityLevels) {
+    'interval' => function ($e) use (&$slotToPlayerslot, &$heroIdToSlot, &$heroToSlot) {
       // check if hero has been assigned to entity
       if (!empty($e['hero_id'])) {
         // grab the end of the name, lowercase it
@@ -35,6 +35,20 @@ function processMetadata(&$entries, $epilogue) {
       // map slot number (0-9) to playerslot (0-4, 128-132)
       $slotToPlayerslot[$e['key']] = $e['value'];
     },
+    'DOTA_ABILITY_LEVEL' => function ($e) use (&$heroToSlot, &$abilityLevels) {
+      if (!$e['abilitylevel'] || $e['time'] <= -89) return;
+      $slot = 0;
+      foreach ($heroToSlot as $k => $s) {
+        if ($k == $e['targetname']) {
+          $slot = $s;
+          break;
+        }
+      }
+      if (!isset($abilityLevels[$slot])) {
+        $abilityLevels[$slot] = [];
+      }
+      $abilityLevels[$slot][$e['time']] = $e['valuename'];
+    }
   ];
 
   foreach ($entries as $e) {

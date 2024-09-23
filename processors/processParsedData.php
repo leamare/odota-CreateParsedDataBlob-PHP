@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 include_once __DIR__ . "/populate.php";
 
@@ -10,7 +10,5 @@ function processParsedData(&$entries, $container, &$meta) {
   }
 
   return $container;
-}
-
 }
 

@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 include_once __DIR__ . "/../util/utility.php";
 
@@ -40,4 +40,3 @@ function processAllPlayers($entries, $meta) {
   return $res;
 }
 
-}

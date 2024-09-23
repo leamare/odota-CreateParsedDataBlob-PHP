@@ -5,5 +5,3 @@ function from_camel_case($str) {
   $func = function($c) { return "_" . strtolower($c[1]); };
   return preg_replace_callback('/([A-Z])/', $func, $str);
 }
-
-?>

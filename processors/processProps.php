@@ -167,7 +167,7 @@ namespace CreateParsedDataBlob {
         case 'interval':
           if (isset($e['hero_id'])) {
             $player =& $container['players'][$e['slot']];
-            $player['hero_id'] = $e['hero_id'];
+            $player['variant'] = $e['variant'] ?? null;
             $player['level'] = $e['level'];
             $player['gold'] = $e['gold'];
             $player['last_hits'] = $e['lh'];

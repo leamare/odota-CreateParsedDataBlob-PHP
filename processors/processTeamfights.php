@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 include_once __DIR__ . "/populate.php";
 
@@ -93,9 +93,7 @@ function processTeamfights(&$entries, &$meta) {
             // add to deaths_pos
             // lookup slot of the killed hero by hero name (e.key)
             // get position from intervalstate
-            $_values = array_values($intervalState[$r['time']][$r['slot']]);
-            $x = $_values[0];
-            $y = $_values[1];
+            [$x, $y] = array_values($intervalState[$r['time']][$r['slot']]);
             // fill in the copy
             $r['type'] = 'deaths_pos';
             $r['key'] = \json_encode([$x, $y]);
@@ -138,7 +136,13 @@ function processTeamfights(&$entries, &$meta) {
           }
         } else if ($e['type'] === 'ability_uses' || $e['type'] === 'item_uses') {
           // count skills, items
-          populate($e, $tf, $meta);
+          // populate($e, $tf, $meta);
+          // Using slot directly as index appears to be incorrect for these fields as of 2024 (see processExpand)
+          // So just compute an index based on player_slot
+          $computedSlot = $e['player_slot'] % (128 - 5);
+          if (isset($tf['players'][$computedSlot]) && ($tf['players'][$computedSlot][$e['type']] ?? false)) {
+            $tf['players'][$computedSlot][$e['type']][$e['key']] = ($tf['players'][$computedSlot][$e['type']][$e['key']] ?? 0) + 1;
+          }
         }
       }
     }
@@ -146,6 +150,3 @@ function processTeamfights(&$entries, &$meta) {
   return $teamfights;
 }
 
-}
-
-?>

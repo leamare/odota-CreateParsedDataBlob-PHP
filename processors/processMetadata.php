@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 include __DIR__ . "/../__includes/from_camel_case.php";
 
@@ -36,6 +36,7 @@ function processMetadata(&$entries, $epilogue) {
       $slotToPlayerslot[$e['key']] = $e['value'];
     },
     'DOTA_ABILITY_LEVEL' => function ($e) use (&$heroToSlot, &$abilityLevels) {
+      // repopulating ability levels from replay using level up events
       if (!$e['abilitylevel'] || $e['time'] <= -89) return;
       $slot = 0;
       foreach ($heroToSlot as $k => $s) {
@@ -48,7 +49,7 @@ function processMetadata(&$entries, $epilogue) {
         $abilityLevels[$slot] = [];
       }
       $abilityLevels[$slot][$e['time']] = $e['valuename'];
-    }
+    },
   ];
 
   foreach ($entries as $e) {
@@ -65,6 +66,4 @@ function processMetadata(&$entries, $epilogue) {
     'patch_id' => utils\get_patch_id($epilogue['gameInfo_']['dota_']['endTime_']),
     'game_mode' => $epilogue['gameInfo_']['dota_']['gameMode_'],
   ];
-}
-
 }

@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 function processUploadProps(&$entries) {
   $container = [
@@ -31,12 +31,13 @@ function processUploadProps(&$entries) {
         $container['player_map'][$e['player_slot']]['last_hits'] = $e['lh'];
         $container['player_map'][$e['player_slot']]['gold'] = $e['gold'];
         $container['player_map'][$e['player_slot']]['xp'] = $e['xp'];
+        if (!isset($container['player_map'][$e['player_slot']]['variant'])) {
+          $container['player_map'][$e['player_slot']]['variant'] = $e['variant'];
+        }
         break;
       default:
         break;
     }
   }
   return $container;
-}
-
 }

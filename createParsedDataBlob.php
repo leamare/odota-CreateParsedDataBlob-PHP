@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 ini_set('memory_limit', '4000M');
 
@@ -104,5 +104,4 @@ function parseStream($stream, $doLogParse = true, $verbose = false) {
   return $parsedData;
 }
 
-}
 

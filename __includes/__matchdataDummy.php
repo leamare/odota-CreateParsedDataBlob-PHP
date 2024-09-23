@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 function getParseSchema() {
   $schema = [
@@ -72,12 +72,9 @@ function getParseSchema() {
       'randomed' => false,
       'repicked' => false,
       'pred_vict' => false,
+      'neutral_tokens_log' => [],
     ]),
   ];
   
   return $schema;
 }
-
-}
-
-?>

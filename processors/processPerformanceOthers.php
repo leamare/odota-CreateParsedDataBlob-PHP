@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 function greevilsGreed(&$e, &$container, $meta) {
   if ($e['type'] === 'killed' && isset($e['greevils_greed_stack'])) {
@@ -10,13 +10,14 @@ function greevilsGreed(&$e, &$container, $meta) {
 
     if (isset($meta['ability_levels'][$alchName]['alchemist_goblins_greed'])) {
       $ggLvl = $meta['ability_levels'][$alchName]['alchemist_goblins_greed'];
-      $goldBase = 3;
-      $goldStack = $e['greevils_greed_stack'] * 3;
     } else {
       $ggLvl = 0;
-      $goldBase = 2;
-      $goldStack = $e['greevils_greed_stack'] * 2;
+      // $goldBase = 2;
+      // $goldStack = $e['greevils_greed_stack'] * 2;
     }
+
+    $goldBase = 3;
+    $goldStack = $e['greevils_greed_stack'] * 3;
 
     switch ($ggLvl) {
       case 0: $goldStack = min($goldStack, 18); break;
@@ -54,7 +55,8 @@ function track(&$e, &$container, $meta) {
     }
     // If the talent is selected add the extra bonus
     if ($trackTalentLvl === 1) {
-      $gold += 250;
+      // $gold += 250;
+      $gold += 45;
     }
 
     $trackerPlayer['performance_others'] = \array_replace([
@@ -68,11 +70,10 @@ function track(&$e, &$container, $meta) {
 }
 
 function performanceOthers(&$e, &$container, $meta) {
-  if (!$meta) {
+  if (empty($meta)) {
     return;
   }
   greevilsGreed($e, $container, $meta);
   track($e, $container, $meta);
 }
 
-}

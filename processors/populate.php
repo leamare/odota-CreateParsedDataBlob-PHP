@@ -1,7 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob
-{
+namespace CreateParsedDataBlob;
 
 //include_once __DIR__ . "/performanceOthers.php";
 include_once __DIR__ . "/../util/php_utility.php";
@@ -37,25 +36,28 @@ function populate(&$e, &$container, &$meta) {
       break;
     default:
       if (!isset($container['players'][$e['slot']])) {
-      // couldn't associate with a player, probably attributed to a creep/tower/necro unit
-      // console.log(e);
+        // couldn't associate with a player, probably attributed to a creep/tower/necro unit
+        // console.log(e);
         return;
       }
 
-      if (isset($container['players'][$e['slot']][$e['type']]))
+      if (isset($container['players'][$e['slot']][$e['type']])) {
         $t =& $container['players'][$e['slot']][$e['type']];
-      else
+      } else {
         $t = null;
-      
-      if ($t === null) {
-      // container.players[0] doesn't have a type for this event
-      // console.log("no field in parsed_data.players for %s", e.type);
+      }
 
+      if ($t === null) {
+        // container.players[0] doesn't have a type for this event
+        // console.log("no field in parsed_data.players for %s", e.type);
       } else if (isset($e['posData'])) {
-      // fill 2d hash with x,y values
-        $key = \json_decode( $e['key'] );
-        $x = $key[0];
-        $y = $key[1];
+        // fill 2d hash with x,y values
+        if (isset($e['key'])) {
+          [$x, $y] = \json_decode( $e['key'] );
+        } else {
+          $x = $e['x'];
+          $y = $e['y'];
+        }
         if (!isset($t[$x])) {
           $t[$x] = [];
         }
@@ -64,17 +66,21 @@ function populate(&$e, &$container, &$meta) {
         }
         $t[$x][$y] += 1;
       } else if (isset($e['max'])) {
-      // check if value is greater than what was stored in value prop
+        // check if value is greater than what was stored in value prop
         if ($e['value'] > $t['value']) {
           $container['players'][$e['slot']][$e['type']] = $e;
         }
       } else if (is_array($t) && !utils\is_assoc_array_by_index($e['type'])) {
-      // determine whether we want the value only (interval) or everything (log)
-      // either way this creates a new value so e can be mutated later
+        // determine whether we want the value only (interval) or everything (log)
+        // either way this creates a new value so e can be mutated later
         // $arrEntry;
         if (isset($e['interval']) && $e['interval']) {
           $arrEntry = $e['value'];
-        } else if ($e['type'] === 'purchase_log' || $e['type'] === 'kills_log' || $e['type'] === 'runes_log') {
+        } else if ($e['type'] === 'purchase_log' || 
+          $e['type'] === 'kills_log' || 
+          $e['type'] === 'runes_log' ||
+          $e['type'] === 'neutral_tokens_log'
+        ) {
           $arrEntry = [
             'time' => $e['time'],
             'key' => $e['key'],
@@ -101,9 +107,8 @@ function populate(&$e, &$container, &$meta) {
         $t[] = $arrEntry;
       } else if ($e['type'] === 'ability_targets') {
         // e.g. { Telekinesis: { Antimage: 1, Bristleback: 2 }, Fade Bolt: { Lion: 4, Timber: 5 }, ... }
-        $ability = $e['key'][0];
-        $target = $e['key'][1];
-        if (isset($t[$ability][$target])) {
+        [$ability, $target] = $e['key'];
+        if (!empty($t[$ability]) && isset($t[$ability][$target])) {
           $t[$ability][$target] += 1;
         } else if (isset($t[$ability])) {
           $t[$ability][$target] = 1;
@@ -112,8 +117,7 @@ function populate(&$e, &$container, &$meta) {
           $t[$ability][$target] = 1;
         }
       } else if ($e['type'] === 'damage_targets') {
-        $ability = $e['key'][0];
-        $target = $e['key'][1];
+        [$ability, $target] = $e['key'];
         $damage = $e['value'];
         if (!isset($t[$ability])) {
           $t[$ability] = [];
@@ -150,4 +154,3 @@ function populate(&$e, &$container, &$meta) {
   }
 }
 
-}

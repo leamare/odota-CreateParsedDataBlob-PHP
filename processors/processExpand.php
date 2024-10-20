@@ -1,6 +1,6 @@
 <?php 
 
-namespace CreateParsedDataBlob {
+namespace CreateParsedDataBlob;
 
 /**
  * Strips off "item_" from strings, and nullifies dota_unknown.
@@ -32,9 +32,21 @@ function processExpand(&$entries, &$meta) {
    * Place a copy of the entry in the output
    * */
   $expand = function($e) use (&$output, &$meta) {
+    //if there are cooridnates, round to one decimal point
+    if (isset($e['x'])) { $e['x'] = round($e['x'], 1); }
+    if (isset($e['y'])) { $e['y'] = round($e['y'], 1); }
+    if (isset($e['z'])) { $e['z'] = round($e['z'], 1); }
+    //generate "key" for entries with x/y and no key
+    if (!isset($e['key']) && isset($e['x']) && isset($e['y'])) { 
+      $e['key'] = json_encode([ $e['x'], $e['y'] ]);
+    }
     // set slot and player_slot
-    $slot = $e['slot'] ?? (isset($e['unit']) && isset($meta['hero_to_slot'][ $e['unit'] ]) ? $meta['hero_to_slot'][ $e['unit'] ] : null);
-    $output[] = array_replace($e, [
+    $slot = $e['slot'] ?? (
+      isset($e['unit']) && isset($meta['hero_to_slot'][ $e['unit'] ]) ? 
+      $meta['hero_to_slot'][ $e['unit'] ] : 
+      null
+    );
+    $output[] = \array_replace($e, [
       'slot' => $slot,
       'player_slot' => $meta['slot_to_playerslot'][$slot] ?? $slot,
     ]);
@@ -484,11 +496,29 @@ function processExpand(&$entries, &$meta) {
       ]);
     },
     'CHAT_MESSAGE_COURIER_LOST' => function($e) use ($expand, &$meta) {
+      // $team
+      // $killer
+      // For backwards compatability - when teams only had one courier player1 would be the team of killed courier
+      if (empty($e['player2'])) {
+        $team = $e['player1'];
+        $killer = null;
+      } else {
+        // 2 is radiant and 3 dire
+        $team = $e['player2'];
+        if ($e['player1'] > -1) {
+          $killer = $meta['slot_to_playerslot'][$e['player1']];
+        }
+        if ($e['player1'] === -1) {
+          $killer = -1;
+        }
+      }
       // player1 = team that lost courier? (2/3)
       $expand([
         'time' => $e['time'],
         'type' => $e['type'],
-        'team' => $e['player1'],
+        'value' => $e['value'],
+        'team' => $team,
+        'killer' => $killer,
       ]);
     },
     'CHAT_MESSAGE_HERO_NOMINATED_BAN' => function($e = null) use ($expand) {
@@ -595,19 +625,23 @@ function processExpand(&$entries, &$meta) {
       }
     },
     'obs' => function($e) use ($expand) {
-      $expand(\array_replace($e, [
-        'type' => 'obs',
-        'posData' => true,
-      ]));
+      if (!empty($e['x']) && !empty($e['y'])) { 
+        $expand(\array_replace($e, [
+          'type' => 'obs',
+          'posData' => true,
+        ]));
+      }
       $expand(\array_replace($e, [
         'type' => 'obs_log',
       ]));
     },
     'sen' => function($e) use ($expand) {
-      $expand(\array_replace($e, [
-        'type' => 'sen',
-        'posData' => true,
-      ]));
+      if (!empty($e['x']) && !empty($e['y'])) {
+        $expand(\array_replace($e, [
+          'type' => 'sen',
+          'posData' => true,
+        ]));
+      }
       $expand(\array_replace($e, [
         'type' => 'sen_log',
       ]));
@@ -633,6 +667,11 @@ function processExpand(&$entries, &$meta) {
     'cosmetics' => function($e) use ($expand) {
       $expand($e);
     },
+    'neutral_token' => function($e) use ($expand) {
+      $expand(array_replace($e, [
+        'type' => 'neutral_tokens_log',
+      ]));
+    },
   ];
 
   foreach($entries as &$e) {
@@ -646,4 +685,3 @@ function processExpand(&$entries, &$meta) {
   return $output;
 }
 
-}

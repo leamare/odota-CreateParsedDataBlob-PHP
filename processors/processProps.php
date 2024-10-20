@@ -10,7 +10,6 @@ namespace CreateParsedDataBlob {
      * Missing stuff that we have no way to get anyhow:
      * 
      * PLAYERS: 
-       * ability_upgrades_arr
        * additional_units
        * items: backpack_#, item_#
        * permanent_buffs
@@ -167,6 +166,7 @@ namespace CreateParsedDataBlob {
         case 'interval':
           if (isset($e['hero_id'])) {
             $player =& $container['players'][$e['slot']];
+            $player['hero_id'] = $e['hero_id'] / 2;
             $player['variant'] = $e['variant'] ?? null;
             $player['level'] = $e['level'];
             $player['gold'] = $e['gold'];

@@ -73,6 +73,7 @@ function getParseSchema() {
       'repicked' => false,
       'pred_vict' => false,
       'neutral_tokens_log' => [],
+      'neutral_item_history' => [],
     ]),
   ];
   

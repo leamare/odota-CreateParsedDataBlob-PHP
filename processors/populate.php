@@ -74,37 +74,65 @@ function populate(&$e, &$container, &$meta) {
         // determine whether we want the value only (interval) or everything (log)
         // either way this creates a new value so e can be mutated later
         // $arrEntry;
-        if (isset($e['interval']) && $e['interval']) {
-          $arrEntry = $e['value'];
-        } else if ($e['type'] === 'purchase_log' || 
-          $e['type'] === 'kills_log' || 
-          $e['type'] === 'runes_log' ||
-          $e['type'] === 'neutral_tokens_log'
-        ) {
-          $arrEntry = [
-            'time' => $e['time'],
-            'key' => $e['key'],
-          ];
 
-          $maxCharges = $e['key'] === 'tango' ? 3 : 1;
-          if ($e['type'] === 'purchase_log' && $e['charges'] > $maxCharges) {
+        if ($e['type'] === 'neutral_item_history') {
+          $existedEl = null;
+
+          $itemName = preg_replace_callback('/([A-Z])/', function($matches) {
+            return '_' . strtolower($matches[1]);
+          }, $e['key']);
+          $itemName = strtolower($itemName);
+          $itemName = str_replace('__', '_', $itemName);
+
+          if (strpos($itemName, '_') === 0) {
+            $itemName = substr($itemName, 1);
+          }
+          $existedEl = array_filter($t, function($el) use ($e) {
+            return $el['time'] === $e['time'];
+          });
+          $arrEntry = empty($existedEl) ? [
+            'time' => $e['time']
+          ] : $existedEl;
+          $arrEntry['item_neutral'] = $e['isNeutralActiveDrop'] ? $itemName : ($arrEntry['item_neutral'] ?? null);
+          $arrEntry['item_neutral_enhancement'] = $e['isNeutralPassiveDrop'] ? $itemName : ($arrEntry['item_neutral_enhancement'] ?? null);
+          if ($existedEl) {
+            $existedEl = $arrEntry;
+          } else {
+            $t[] = $arrEntry;
+          }
+        } else {
+          if (isset($e['interval']) && $e['interval']) {
+            $arrEntry = $e['value'];
+          } else if ($e['type'] === 'purchase_log' || 
+            $e['type'] === 'kills_log' || 
+            $e['type'] === 'runes_log' ||
+            $e['type'] === 'neutral_tokens_log'
+          ) {
             $arrEntry = [
               'time' => $e['time'],
               'key' => $e['key'],
-              'charges' => $e['charges']
             ];
+  
+            $maxCharges = $e['key'] === 'tango' ? 3 : 1;
+            if ($e['type'] === 'purchase_log' && $e['charges'] > $maxCharges) {
+              $arrEntry = [
+                'time' => $e['time'],
+                'key' => $e['key'],
+                'charges' => $e['charges']
+              ];
+            }
+  
+            if ($e['type'] === 'kills_log' && isset($e['tracked_death'])) {
+              $arrEntry = \array_replace([
+                'tracked_death' => $e['tracked_death'],
+                'tracked_sourcename' => $e['tracked_sourcename'],
+              ], $arrEntry);
+            }
+          } else {
+            $arrEntry = $e;
           }
-
-          if ($e['type'] === 'kills_log' && isset($e['tracked_death'])) {
-            $arrEntry = \array_replace([
-              'tracked_death' => $e['tracked_death'],
-              'tracked_sourcename' => $e['tracked_sourcename'],
-            ], $arrEntry);
-          }
-        } else {
-          $arrEntry = $e;
+          $t[] = $arrEntry;
         }
-        $t[] = $arrEntry;
       } else if ($e['type'] === 'ability_targets') {
         // e.g. { Telekinesis: { Antimage: 1, Bristleback: 2 }, Fade Bolt: { Lion: 4, Timber: 5 }, ... }
         [$ability, $target] = $e['key'];

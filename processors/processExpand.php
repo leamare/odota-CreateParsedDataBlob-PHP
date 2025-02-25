@@ -672,6 +672,9 @@ function processExpand(&$entries, &$meta) {
         'type' => 'neutral_tokens_log',
       ]));
     },
+    'neutral_item_history' => function($e) use ($expand) {
+      $expand($e);
+    },
   ];
 
   foreach($entries as &$e) {

@@ -39,11 +39,15 @@ function greevilsGreed(&$e, &$container, $meta) {
 function track(&$e, &$container, $meta) {
   if (($e['tracked_death'] ?? false) && $e['type'] === "killed") {
     $bhName = 'npc_dota_hero_bountyhunter';
+    $bhName_alt = 'npc_dota_hero_bounty_hunter';
+
     $trackerSlot = $meta['hero_to_slot'][$e['tracked_sourcename']];
     $trackerPlayer = $container['players'][$trackerSlot];
 
-    $trackLvl = $meta['ability_levels'][$bhName]['bounty_hunter_track'];
-    $trackTalentLvl = $meta['ability_levels'][$bhName]['special_bonus_unique_bounty_hunter_3'];
+    $trackLvl = $meta['ability_levels'][$bhName]['bounty_hunter_track'] ?? 
+      $meta['ability_levels'][$bhName_alt]['bounty_hunter_track'];
+    $trackTalentLvl = $meta['ability_levels'][$bhName]['special_bonus_unique_bounty_hunter_3'] ?? 
+      $meta['ability_levels'][$bhName_alt]['special_bonus_unique_bounty_hunter_3'];
 
     $gold = 0;
 

@@ -27,7 +27,7 @@ function processDraftTimings(&$entries, &$meta) {
   // to override incorrect draft orders from odota parser
   // 0 is first pick/ban team, 1 is second
   // TODO: load it to out of main code to metadata
-  if ($meta['game_mode'] == 2) {
+  if ($meta['game_mode'] == 2 || $meta['game_mode'] == 8) {
     if ($meta['patch_id'] < 53) {
       $order_mask = [
         0, 1, 0, 1, // bans 1
@@ -111,7 +111,7 @@ function processDraftTimings(&$entries, &$meta) {
     }
   }
   // ignore Source 1 games
-  if (sizeof($draftTimings) !== 0) {
+  if (count($draftTimings) !== 0) {
     foreach ($draftTimings as $i => $dt) {
       if ($dt['order'] === 1) {
         $draftTimings[$i]['total_time_taken'] = ($dt['time'] - $draftStart);

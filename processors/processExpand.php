@@ -506,7 +506,7 @@ function processExpand(&$entries, &$meta) {
         // 2 is radiant and 3 dire
         $team = $e['player2'];
         if ($e['player1'] > -1) {
-          $killer = $meta['slot_to_playerslot'][$e['player1']];
+          $killer = $meta['slot_to_playerslot'][$e['player1']] ?? -1;
         }
         if ($e['player1'] === -1) {
           $killer = -1;

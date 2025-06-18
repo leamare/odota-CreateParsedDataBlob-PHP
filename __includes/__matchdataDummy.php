@@ -14,6 +14,9 @@ function getParseSchema() {
     'radiant_xp_adv' => [],
     'cosmetics' => [],
     'players' => array_fill(0, 10, [
+    // 'hero_id' => 0,
+    // 'variant' => null,
+    // 'facet_hero_id' => null,
       'player_slot' => 0,
       'obs_placed' => 0,
       'sen_placed' => 0,

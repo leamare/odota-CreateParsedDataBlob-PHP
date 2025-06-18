@@ -34,6 +34,9 @@ function processUploadProps(&$entries) {
         if (!isset($container['player_map'][$e['player_slot']]['variant'])) {
           $container['player_map'][$e['player_slot']]['variant'] = $e['variant'];
         }
+        if (!isset($container['player_map'][$e['player_slot']]['facet_hero_id'])) {
+          $container['player_map'][$e['player_slot']]['facet_hero_id'] = $e['facet_hero_id'];
+        }
         break;
       default:
         break;

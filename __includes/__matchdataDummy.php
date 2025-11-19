@@ -13,6 +13,7 @@ function getParseSchema() {
     'radiant_gold_adv' => [],
     'radiant_xp_adv' => [],
     'cosmetics' => [],
+    'pauses' => [],
     'players' => array_fill(0, 10, [
     // 'hero_id' => 0,
     // 'variant' => null,

@@ -15,6 +15,7 @@ include "processors/processParsedData.php";
 include "processors/processMetadata.php";
 include "processors/processExpand.php";
 include "processors/processDraftTimings.php";
+include "processors/processPauses.php";
 include "processors/processProps.php";
 include "processors/processItemUsageEvents.php";
 //include "processors/processUploadProps.php";
@@ -50,6 +51,10 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false
   $time['draft'] = [ 'start' => \microtime(true) ];
   $parsedData['draft_timings'] = processDraftTimings($entries, $meta);
   $time['draft']['end'] = \microtime(true);
+
+  $time['pauses'] = [ 'start' => \microtime(true) ];
+  $parsedData['pauses'] = processPauses($entries);
+  $time['pauses']['end'] = \microtime(true);
 
   $time['processAllPlayers'] = [ 'start' => \microtime(true) ];
   $ap = processAllPlayers($entries, $meta);

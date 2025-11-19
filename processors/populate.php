@@ -2,7 +2,7 @@
 
 namespace CreateParsedDataBlob;
 
-//include_once __DIR__ . "/performanceOthers.php";
+//include_once __DIR__ . "/processPerformanceOthers.php";
 include_once __DIR__ . "/../util/php_utility.php";
 
 function populate(&$e, &$container, &$meta) {
@@ -25,6 +25,7 @@ function populate(&$e, &$container, &$meta) {
     case 'CHAT_MESSAGE_AEGIS_STOLEN':
     case 'CHAT_MESSAGE_DENIED_AEGIS':
     case 'CHAT_MESSAGE_ROSHAN_KILL':
+    case 'CHAT_MESSAGE_MINIBOSS_KILL':
     case 'building_kill':
       $container['objectives'][] = $e;
       break;
@@ -86,6 +87,10 @@ function populate(&$e, &$container, &$meta) {
 
           if (strpos($itemName, '_') === 0) {
             $itemName = substr($itemName, 1);
+          }
+          // for whatever reason entity in replay is called CDOTA_Item_Enhancement_Timelss in replay, but everywhere else its enhancement_timeless
+          if ($itemName === 'enhancement_timelss') {
+            $itemName = 'enhancement_timeless';
           }
           $existedEl = array_filter($t, function($el) use ($e) {
             return $el['time'] === $e['time'];

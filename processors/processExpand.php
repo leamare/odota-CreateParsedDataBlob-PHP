@@ -495,6 +495,14 @@ function processExpand(&$entries, &$meta) {
         'team' => $e['player1'],
       ]);
     },
+    'CHAT_MESSAGE_MINIBOSS_KILL' => function($e) use ($expand) {
+      $expand([
+        'time' => $e['time'],
+        'type' => $e['type'],
+        'slot' => $e['player1'],
+        'team' => $e['value'],
+      ]);
+    },
     'CHAT_MESSAGE_COURIER_LOST' => function($e) use ($expand, &$meta) {
       // $team
       // $killer

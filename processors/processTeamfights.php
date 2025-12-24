@@ -65,7 +65,9 @@ function processTeamfights(&$entries, &$meta) {
   foreach ($teamfights as &$tf) {
     foreach ($tf['players'] as $ind => &$p) {
       // record player's start/end xp for level change computation
-      if (isset($intervalState[$tf['start']]) && isset($intervalState[$tf['end']])) {
+      $isStart = ($intervalState[$tf['start']] ?? [])[$ind] ?? 0;
+      $isEnd = ($intervalState[$tf['end']] ?? [])[$ind] ?? 0;
+      if ($isStart && $isEnd) {
         $p['xp_start'] = $intervalState[$tf['start']][$ind]['xp'];
         $p['xp_end'] = $intervalState[$tf['end']][$ind]['xp'];
       }

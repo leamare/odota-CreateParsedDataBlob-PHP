@@ -45,13 +45,30 @@ function processDraftTimings(&$entries, &$meta) {
         0, 0, 0, 0, // bans 3
         1, 1, // picks 3
       ];
+    } else if ($meta['patch_id'] < 59) {
+      $order_mask = [
+        0, 1, 0, 1, // bans 1
+        0, 1, 1, 0, // picks 1
+        0, 1, 0, 1, 0, 1, // bans 2
+        1, 0, 0, 1, // picks 2
+        0, 1, 0, 1, // bans 3
+        0, 1, // picks 3
+      ];
+      $order_mask_ispick = [
+        0, 0, 0, 0, // bans 1
+        1, 1, 1, 1, // picks 1
+        0, 0, 0, 0, 0, 0, // bans 2
+        1, 1, 1, 1, // picks 2
+        0, 0, 0, 0, // bans 3
+        1, 1, // picks 3
+      ];
     } else {
       $order_mask = [
-        0, 1, 1, 0, 1, 1, 0, // bans 1
+        0, 0, 1, 1, 0, 1, 1, // bans 1
         0, 1, // picks 1
         0, 0, 1, // bans 2
         1, 0, 0, 1, 1, 0, // picks 2
-        0, 1, 1, 0, // bans 3
+        0, 1, 0, 1, // bans 3
         0, 1, // picks 3
       ];
       $order_mask_ispick = [

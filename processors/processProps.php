@@ -31,7 +31,7 @@ namespace CreateParsedDataBlob {
       $container['match_seq_num'] = $match_details['result']['match_seq_num'];
       $container['negative_votes'] = $match_details['result']['negative_votes'];
       $container['positive_votes'] = $match_details['result']['positive_votes'];
-      $container['lobby_type'] = $match_details['result']['match_seq_num'];
+      $container['lobby_type'] = $match_details['result']['lobby_type'];
       $container['engine'] = $match_details['result']['engine'];
       $container['cluster'] = $match_details['result']['cluster'];
 
@@ -75,7 +75,7 @@ namespace CreateParsedDataBlob {
         }
       }
 
-      $container['duration'] = end($container['objectives'])['time'];
+      $container['duration'] = !empty($container['objectives']) ? end($container['objectives'])['time'] : 0;
       $container['end_time'] = $epilogue_props['endTime_'];
       $container['start_time'] = $container['end_time'] - $container['duration'];
     }
@@ -135,8 +135,12 @@ namespace CreateParsedDataBlob {
 
     // compute throw/comeback levels
     $radiantGoldAdvantage = $container['radiant_gold_adv'];
-    $throwVal = $container['radiant_win'] ? max($radiantGoldAdvantage) : min($radiantGoldAdvantage) * -1;
-    $comebackVal = $container['radiant_win'] ? min($radiantGoldAdvantage) * -1 : max($radiantGoldAdvantage);
+    $throwVal = !empty($radiantGoldAdvantage)
+      ? ($container['radiant_win'] ? max($radiantGoldAdvantage) : min($radiantGoldAdvantage) * -1)
+      : 0;
+    $comebackVal = !empty($radiantGoldAdvantage)
+      ? ($container['radiant_win'] ? min($radiantGoldAdvantage) * -1 : max($radiantGoldAdvantage))
+      : 0;
 
     if (!$container['radiant_win'])
       $container['throw'] = $throwVal;

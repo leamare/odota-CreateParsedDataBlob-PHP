@@ -61,7 +61,7 @@ function bytes_to_string(array $bytes): string {
   $out = "";
   foreach ($bytes as $b)
     $out .= chr($b);
-  return $out;
+  return mb_scrub($out, 'UTF-8');
 }
 
 function get_tower_statuses(array $objectives): array {

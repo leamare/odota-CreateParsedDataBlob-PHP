@@ -16,7 +16,7 @@ $data = parseStream(
   $options['verbose'] ?? $options['v'] ?? false
 );
 
-echo \json_encode($data);
+echo \json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
 }
 

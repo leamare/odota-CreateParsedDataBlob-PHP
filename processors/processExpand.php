@@ -2,6 +2,8 @@
 
 namespace CreateParsedDataBlob;
 
+include_once __DIR__ . "/../util/php_utility.php";
+
 /**
  * Strips off "item_" from strings, and nullifies dota_unknown.
  * Does not mutate the original string.
@@ -685,7 +687,12 @@ function processExpand(&$entries, &$meta) {
     },
   ];
 
+  $gameEndTime = $meta['game_end_time'] ?? null;
+
   foreach($entries as &$e) {
+    if (utils\should_skip_post_game_event($e, $gameEndTime)) {
+      continue;
+    }
     if (isset($types[ $e['type'] ])) {
       $types[ $e['type'] ]($e);
     } else {

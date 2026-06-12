@@ -48,6 +48,53 @@ function array_every(array $values, $func) {
   return true;
 }
 
+/**
+ * Replay time after which stat-affecting events should be ignored.
+ * Matches odota-parser postGame: DOTA_COMBATLOG_GAME_STATE value 6 (POST_GAME).
+ */
+function get_game_end_time(array $entries): ?int {
+  $postGame = null;
+  $fortDeath = null;
+
+  foreach ($entries as $e) {
+    if (!isset($e['time'])) {
+      continue;
+    }
+    $time = (int)$e['time'];
+    $type = $e['type'] ?? '';
+
+    if ($type === 'DOTA_COMBATLOG_GAME_STATE' && (int)($e['value'] ?? -1) === 6) {
+      $postGame = $postGame === null ? $time : min($postGame, $time);
+    }
+    if ($type === 'DOTA_COMBATLOG_DEATH' && strpos($e['targetname'] ?? '', '_fort') !== false) {
+      $fortDeath = $fortDeath === null ? $time : max($fortDeath, $time);
+    }
+  }
+
+  return $postGame ?? $fortDeath;
+}
+
+/** Event types still processed after game end (chat etc.). */
+function is_post_game_allowed_type(string $type): bool {
+  return in_array($type, [
+    'chat',
+    'chatwheel',
+    'cosmetics',
+    'epilogue',
+    'player_slot',
+    'draft_start',
+    'draft_timings',
+    'DOTA_COMBATLOG_GAME_STATE',
+  ], true);
+}
+
+function should_skip_post_game_event(array $e, ?int $gameEndTime): bool {
+  if ($gameEndTime === null || !isset($e['time']) || (int)$e['time'] <= $gameEndTime) {
+    return false;
+  }
+  return !is_post_game_allowed_type((string)($e['type'] ?? ''));
+}
+
 function str_check_multiple(string $haystack, array $needles) {
   foreach ($needles as $value) {
     if (strpos($haystack, $value) !== false) {

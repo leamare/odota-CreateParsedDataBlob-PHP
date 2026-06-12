@@ -3,6 +3,7 @@
 namespace CreateParsedDataBlob;
 
 include_once __DIR__ . "/../util/utility.php";
+include_once __DIR__ . "/../util/php_utility.php";
 
 /**
  * Compute data requiring all players in a match for storage in match table
@@ -15,7 +16,12 @@ function processAllPlayers($entries, $meta) {
     'radiant_xp_adv' => [],
   ];
 
+  $gameEndTime = $meta['game_end_time'] ?? null;
+
   foreach ($entries as $e) {
+    if (utils\should_skip_post_game_event($e, $gameEndTime)) {
+      continue;
+    }
     if ($e['time'] >= 0 && $e['time'] % 60 === 0 && $e['type'] === 'interval') {
       $g = \odota\core\utils\isRadiant([
         'player_slot' => $meta['slot_to_playerslot'][$e['slot']],

@@ -3,6 +3,7 @@
 namespace CreateParsedDataBlob;
 
 include __DIR__ . "/../__includes/from_camel_case.php";
+include_once __DIR__ . "/../util/php_utility.php";
 
 /**
  * Given an event stream, extracts metadata such as game zero time and hero to slot/ID mappings.
@@ -62,6 +63,7 @@ function processMetadata(&$entries, $epilogue) {
     'slot_to_playerslot' => $slotToPlayerslot,
     'hero_id_to_slot' => $heroIdToSlot,
     'ability_levels' => $abilityLevels,
+    'game_end_time' => utils\get_game_end_time($entries),
     'end_date' => $epilogue['gameInfo_']['dota_']['endTime_'],
     'patch_id' => utils\get_patch_id($epilogue['gameInfo_']['dota_']['endTime_']),
     'game_mode' => $epilogue['gameInfo_']['dota_']['gameMode_'],

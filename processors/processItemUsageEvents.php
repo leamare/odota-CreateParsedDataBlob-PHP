@@ -2,6 +2,8 @@
 
 namespace CreateParsedDataBlob {
 
+  include_once __DIR__ . "/../util/php_utility.php";
+
   /**
    * Goes down through events data and records the most recent player position
    * and monitors item usage.
@@ -75,7 +77,12 @@ namespace CreateParsedDataBlob {
       }
     ];
 
+    $gameEndTime = $meta['game_end_time'] ?? null;
+
     foreach($entries as &$e) {
+      if (utils\should_skip_post_game_event($e, $gameEndTime)) {
+        continue;
+      }
       if (isset($types[ $e['type'] ])) {
         $types[ $e['type'] ]($e);
       } else {

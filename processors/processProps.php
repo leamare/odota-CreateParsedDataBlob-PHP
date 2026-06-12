@@ -164,8 +164,13 @@ namespace CreateParsedDataBlob {
     // Same goes for patch number, but we are heavily relying on that, so we need it
     $container['patch'] = utils\get_patch_id($container['start_time']);
 
+    $gameEndTime = $meta['game_end_time'] ?? null;
+
     foreach ($entries as &$e) {
       if (empty($e)) continue;
+      if (utils\should_skip_post_game_event($e, $gameEndTime)) {
+        continue;
+      }
       switch ($e['type']) {
         case 'interval':
           if (isset($e['hero_id'])) {

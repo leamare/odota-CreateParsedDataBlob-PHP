@@ -162,17 +162,100 @@ function get_tower_statuses(array $objectives): array {
   ];
 }
 
+/**
+ * Player slot for a combat-log unit. Spirit bear item uses are Lone Druid's.
+ * */
+function hero_slot_for_unit(array $heroToSlot, ?string $name): ?int {
+  if ($name === null || $name === '') {
+    return null;
+  }
+  if (isset($heroToSlot[$name])) {
+    return $heroToSlot[$name];
+  }
+  if (strpos($name, 'npc_dota_lone_druid_bear') === 0) {
+    return $heroToSlot['npc_dota_hero_lone_druid'] ?? null;
+  }
+  return null;
+}
+
+/**
+ * GET Steam Web API paths in parallel. Port 80 does not answer, and PHP
+ * streams fail TLS here, so this uses curl with a short timeout.
+ * Values are decoded JSON, or null on transport / HTTP error.
+ * */
+function steam_get_many(array $pathsByKey): array {
+  $out = [];
+  foreach ($pathsByKey as $label => $_) {
+    $out[$label] = null;
+  }
+  $apiKey = trim((string)($GLOBALS['cpdb_config']['steamapikey'] ?? ''));
+  if ($apiKey === '' || !$pathsByKey || !function_exists('curl_multi_init')) {
+    return $out;
+  }
+
+  $mh = curl_multi_init();
+  $handles = [];
+  foreach ($pathsByKey as $label => $path) {
+    $ch = curl_init('https://api.steampowered.com/'.ltrim($path, '/'));
+    curl_setopt_array($ch, [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_TIMEOUT => 4,
+      CURLOPT_CONNECTTIMEOUT => 2,
+      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    ]);
+    curl_multi_add_handle($mh, $ch);
+    $handles[$label] = $ch;
+  }
+
+  do {
+    $status = curl_multi_exec($mh, $active);
+    if ($active) {
+      if (curl_multi_select($mh, 1.0) === -1) {
+        usleep(10000);
+      }
+    }
+  } while ($active && $status === CURLM_OK);
+
+  foreach ($handles as $label => $ch) {
+    $body = curl_multi_getcontent($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    if (is_string($body) && $code >= 200 && $code < 300) {
+      $json = json_decode($body, true);
+      if (is_array($json)) {
+        $out[$label] = $json;
+      }
+    }
+    curl_multi_remove_handle($mh, $ch);
+    curl_close($ch);
+  }
+  curl_multi_close($mh);
+  return $out;
+}
+
+function steam_get(string $pathAndQuery): ?array {
+  $fetched = steam_get_many(['_' => $pathAndQuery]);
+  return $fetched['_'] ?? null;
+}
+
+function remember_team_data($id, ?array $payload): void {
+  $row = $payload['result']['teams'][0] ?? [];
+  $GLOBALS['cpdb_config']['team_cache'][(string)$id] = is_array($row) ? $row : [];
+}
+
 function get_team_data($id) {
-  $d = @\file_get_contents(
-      "http://api.steampowered.com/IDOTA2Match_570/GetTeamInfoByTeamID/v1?key=".$GLOBALS['cpdb_config']['steamapikey'].
-      "&start_at_team_id=".$id."&teams_requested=1"
-    );
-  $r = \json_decode(
-    $d, 
-    true
+  $sid = (string)$id;
+  if (isset($GLOBALS['cpdb_config']['team_cache'][$sid])) {
+    return $GLOBALS['cpdb_config']['team_cache'][$sid];
+  }
+  $key = rawurlencode(trim((string)($GLOBALS['cpdb_config']['steamapikey'] ?? '')));
+  $r = steam_get(
+    "IDOTA2Match_570/GetTeamInfoByTeamID/v1?key=".$key.
+    "&start_at_team_id=".$id."&teams_requested=1"
   );
-  if (!empty($r)) return $r['result']['teams'][0];
-  return [  ];
+  $row = $r['result']['teams'][0] ?? [];
+  $GLOBALS['cpdb_config']['team_cache'][$sid] = is_array($row) ? $row : [];
+  return $GLOBALS['cpdb_config']['team_cache'][$sid];
 }
 
 function get_patch_id($start_time) {

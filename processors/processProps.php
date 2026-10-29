@@ -21,10 +21,29 @@ namespace CreateParsedDataBlob {
     $container['parse_time'] = time();
     $container['parser_type'] = "clarity-odota;CreateParsedDataBlobPHP";
     
-    if (isset($GLOBALS['cpdb_config']['steamapikey'])) {
-      $match_details = @file_get_contents("http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=".
-        $GLOBALS['cpdb_config']['steamapikey']."&match_id=".$container['match_id']);
-      $match_details = \json_decode($match_details, true);
+    $match_details = null;
+    $steamKey = trim((string)($GLOBALS['cpdb_config']['steamapikey'] ?? ''));
+    if ($steamKey !== '') {
+      $qkey = rawurlencode($steamKey);
+      $queries = [
+        'match' => "IDOTA2Match_570/GetMatchDetails/v1?key={$qkey}&match_id=".$container['match_id'],
+      ];
+      $radId = $epilogue_props['radiantTeamId_'] ?? null;
+      $direId = $epilogue_props['direTeamId_'] ?? null;
+      if ($radId) {
+        $queries['radiant_team'] = "IDOTA2Match_570/GetTeamInfoByTeamID/v1?key={$qkey}&start_at_team_id={$radId}&teams_requested=1";
+      }
+      if ($direId && (string)$direId !== (string)$radId) {
+        $queries['dire_team'] = "IDOTA2Match_570/GetTeamInfoByTeamID/v1?key={$qkey}&start_at_team_id={$direId}&teams_requested=1";
+      }
+      $fetched = utils\steam_get_many($queries);
+      $match_details = $fetched['match'] ?? null;
+      if ($radId) {
+        utils\remember_team_data($radId, $fetched['radiant_team'] ?? null);
+      }
+      if ($direId && (string)$direId !== (string)$radId) {
+        utils\remember_team_data($direId, $fetched['dire_team'] ?? null);
+      }
     }
 
     if (!empty($match_details) && !isset($match_details['result']['error'])) {

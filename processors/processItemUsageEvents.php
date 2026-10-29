@@ -26,14 +26,27 @@ namespace CreateParsedDataBlob {
       },
       'DOTA_COMBATLOG_ITEM' => function($e) use (&$recentEvents, &$meta, &$positions) {
         if ($e['inflictor'] === 'item_smoke_of_deceit') {
+          // Bear (and other non-hero units) are not in hero_to_slot.
+          $slot = utils\hero_slot_for_unit($meta['hero_to_slot'], $e['attackername'] ?? null);
+          if ($slot === null) {
+            return;
+          }
           $event = [
-            'slot' => $meta['hero_to_slot'][ $e['attackername'] ],
+            'slot' => $slot,
             'time' => $e['time'],
             'affected' => 0,
             'affected_players_slots' => [],
           ];
-          $event['x_cell'] = ($positions[ $event['slot'] ] ?? [])['x'] ?? 0;
-          $event['y_cell'] = ($positions[ $event['slot'] ] ?? [])['y'] ?? 0;
+          // The bear is not on the hero interval grid, so Lone Druid's last
+          // position would reject allies who were actually next to the bear.
+          $isBear = strpos((string)($e['attackername'] ?? ''), 'npc_dota_lone_druid_bear') === 0;
+          if ($isBear) {
+            $event['x_cell'] = null;
+            $event['y_cell'] = null;
+          } else {
+            $event['x_cell'] = ($positions[ $event['slot'] ] ?? [])['x'] ?? 0;
+            $event['y_cell'] = ($positions[ $event['slot'] ] ?? [])['y'] ?? 0;
+          }
           $recentEvents[] =& $event;
         }
       },
@@ -44,9 +57,10 @@ namespace CreateParsedDataBlob {
           $isRadiant = $slot < 5;
           foreach($recentEvents as &$event) {
             if ($isRadiant == ($event['slot'] < 5)) {
-              $delta_x = abs( (($positions[$slot] ?? [])['x'] ?? 0) - $event['x_cell'] );
-              $delta_y = abs( (($positions[$slot] ?? [])['y'] ?? 0) - $event['y_cell'] );
-              if ($delta_x <= 10 && $delta_y <= 10) {
+              $unknownPos = $event['x_cell'] === null || $event['y_cell'] === null;
+              $delta_x = abs( (($positions[$slot] ?? [])['x'] ?? 0) - ($event['x_cell'] ?? 0) );
+              $delta_y = abs( (($positions[$slot] ?? [])['y'] ?? 0) - ($event['y_cell'] ?? 0) );
+              if ($unknownPos || ($delta_x <= 10 && $delta_y <= 10)) {
                 $event['affected']++;
                 $event['affected_players_slots'][] = $slot;
               }

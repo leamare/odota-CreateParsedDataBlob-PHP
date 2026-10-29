@@ -78,6 +78,24 @@ function createParsedDataBlob($entries, $epilogue, $doLogParse, $verbose = false
 
   \fclose($stream);
 
+  if ($verbose) {
+    foreach ($time as $stage => $span) {
+      \file_put_contents(
+        "php://stderr",
+        sprintf("[time] %-24s %7.3fs\n", $stage, $span['end'] - $span['start'])
+      );
+    }
+    \file_put_contents(
+      "php://stderr",
+      sprintf(
+        "[time] entries=%d expanded=%d peak_mem=%sMB\n",
+        count($entries),
+        count($expanded),
+        round(\memory_get_peak_usage(true) / 1048576)
+      )
+    );
+  }
+
   return $parsedData;
 }
 
@@ -88,9 +106,10 @@ function parseStream($stream, $doLogParse = true, $verbose = false) {
   if (!isset($GLOBALS['cpdb_config']['metadata'])) 
     $GLOBALS['cpdb_config']['metadata'] = prepareMetadata();
   if (!isset($GLOBALS['cpdb_config']['steamapikey'])) 
-    $GLOBALS['cpdb_config']['steamapikey'] = @file_get_contents(__DIR__ . "/steamapikey");
+    $GLOBALS['cpdb_config']['steamapikey'] = trim((string)@file_get_contents(__DIR__ . "/steamapikey"));
 
   $entries = [];
+  $loadStart = \microtime(true);
 
   $stream = \fopen($stream, "r") or die("Unable to open stream");
   while(!\feof($stream)) {
@@ -103,7 +122,10 @@ function parseStream($stream, $doLogParse = true, $verbose = false) {
       $entries[] = $e;
   }
   \fclose($stream);
-  
+  if ($verbose) {
+    \file_put_contents("php://stderr", sprintf("[time] %-24s %7.3fs\n", "load", \microtime(true) - $loadStart));
+  }
+
   $parsedData = createParsedDataBlob($entries, $epilogue ?? [], $doLogParse, $verbose);
 
   return $parsedData;

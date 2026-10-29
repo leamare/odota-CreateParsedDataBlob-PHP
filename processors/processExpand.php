@@ -50,7 +50,7 @@ function processExpand(&$entries, &$meta) {
     );
     $output[] = \array_replace($e, [
       'slot' => $slot,
-      'player_slot' => $meta['slot_to_playerslot'][$slot] ?? $slot,
+      'player_slot' => $slot === null ? null : ($meta['slot_to_playerslot'][$slot] ?? $slot),
     ]);
   };
 
